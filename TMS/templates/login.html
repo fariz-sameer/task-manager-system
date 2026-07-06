@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log-in</title>
+</head>
+<body>
+
+<h1>Welcome to Task Management System</h1>
+<div>
+    <h2>Log-in</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+
+    <p>
+        Don't have an account?
+        <a href="{% url 'signup' %}">Sign Up</a>
+    </p>
+</div>
+
+</body>
+
+<style>
+    h1{
+        text-align: center;
+        color: #333;
+    }
+
+    div{
+        width: 300px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    div h2{
+        text-align: center;
+    }
+
+    button{
+        display: block;
+        width: 50%;
+        padding: 10px;
+        background-color: #08620b;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 10px auto;
+    }
+
+    p {
+        text-align: center;
+    }
+</style>
+
+</html>
+
+

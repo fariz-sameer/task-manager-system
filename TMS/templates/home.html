@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+
+
+
+<head>
+    <title>Task Management System</title>
+</head>
+<body>
+    <h1>Task Management System</h1>
+
+    {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}</p>
+
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+
+            
+        </form>
+    {% endif %}
+
+    <form method="POST" action="{% url 'add_task' %}">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Enter task">
+        <button type="submit">Add</button>
+    </form>
+
+    <ul>
+        {% for task in tasks %}
+        <li>
+                        
+            <div class="task-row">
+                {% if task.status == Status.COMPLETED %}
+                                <s>{{ task.title }}</s>
+                            {% else %}
+                                {{ task.title }}
+                            {% endif %}
+
+
+                <form action="{% url 'update_status' task.id %}" method="POST">
+                    {% csrf_token %}
+
+                    <select name="status" onchange="this.form.submit()">
+                        <option value="{{ Status.NEW }}"
+                            {% if task.status == Status.NEW %}selected{% endif %}>
+                            New
+                        </option>
+
+                        <option value="{{ Status.IN_PROGRESS }}"
+                            {% if task.status == Status.IN_PROGRESS %}selected{% endif %}>
+                            In Progress
+                        </option>
+
+                        <option value="{{ Status.UNDER_REVIEW }}"
+                            {% if task.status == Status.UNDER_REVIEW %}selected{% endif %}>
+                            Under Review
+                        </option>
+
+                        <option value="{{ Status.COMPLETED }}"
+                            {% if task.status == Status.COMPLETED %}selected{% endif %}>
+                            Completed
+                        </option>
+                    </select>
+                </form>
+
+                <a href="{% url 'delete_task' task.id %}">
+                    Delete
+                </a>
+
+            </div>
+        </li>
+                        
+            {% endfor %}
+    </ul>
+
+    
+
+</body>
+
+<style>
+    .logout-form {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+    }
+
+    h1{
+        text-align: center;
+        color: #333;
+    }
+
+    .task-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .task-row form {
+        margin: 0;
+    }
+</style>
+</html>
