@@ -5,31 +5,95 @@ from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth import authenticate
 from django.contrib import messages
+from django.db.models import Q
+from django.contrib.auth.models import User
 
 from .models import Task
 from .forms import SignUpForm
 
 @login_required
 def home(request):
-    tasks = Task.objects.filter(
-        user=request.user 
-    ).order_by('-created_at')
-    return render(request,"home.html",
-        {
-            "tasks": tasks,
-            "Status": Task.Status,
-        }
+    
+    # tasks = Task.objects.filter(
+    #     Q(user=request.user) |
+    #     Q(assigned_to=request.user)
+    # ).distinct().order_by("-created_at")
+
+    tasks = Task.objects.prefetch_related(
+            "assigned_to"
+        ).filter(
+
+            Q(user=request.user) |
+            Q(assigned_to=request.user)
+
+        ).distinct().order_by("-created_at")
+    
+    users = User.objects.exclude(
+        id=request.user.id
     )
+    #This loads all assigned users efficiently.
+
+    return render(request, "home.html", {
+        "tasks": tasks,
+        "Status": Task.Status,
+        "users": users
+    })
 
 @login_required
 def add_task(request):
     if request.method == "POST":
         title = request.POST.get('title')
-        Task.objects.create(
+        task = Task.objects.create(
+
         user=request.user,
-        title=title
-        )
+
+        title=title,
+
+        status=Task.Status.NEW
+
+    )
+    task.assigned_to.add(request.user)
+
     return redirect('home')
+
+@login_required
+# def assign_task(request, task_id):
+#     task = Task.objects.get(id=task_id, user=request.user)
+
+#     if request.method == "POST":
+
+#         user = User.objects.get(
+#             id=request.POST["assigned_to"])
+
+#         # task.assigned_to = user
+#         # task.save()
+#         task.assigned_to.set([user])
+        
+#     return redirect("home")
+def assign_task(request, task_id):
+
+    task = Task.objects.get(
+
+        id=task_id,
+
+        user=request.user
+
+    )
+
+    if request.method == "POST":
+
+        selected_users = request.POST.getlist(
+            "assigned_to"
+        )
+
+        task.assigned_to.set(selected_users)
+
+        # Always keep the owner assigned
+        task.assigned_to.add(request.user)
+
+        
+
+    return redirect("home")
 
 @login_required
 def update_status(request, task_id):

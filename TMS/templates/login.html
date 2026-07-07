@@ -15,6 +15,10 @@
         <button type="submit">Submit</button>
     </form>
 
+    <a class="forpass" href="{% url 'password_reset' %}">
+    Forgot your password?
+    </a>
+
     <p>
         Don't have an account?
         <a href="{% url 'signup' %}">Sign Up</a>
@@ -56,6 +60,13 @@
     p {
         text-align: center;
     }
+
+    div a.forpass {
+        text-align: center; 
+        display: block; 
+        margin-top: 10px; 
+        color: grey; 
+        text-decoration: none;}
 </style>
 
 </html>

@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
-
-
-
-
 <head>
+
     <title>Task Management System</title>
+    <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+
+    <link
+    href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css"
+    rel="stylesheet">
+
+   
+
+    
+
 </head>
 <body>
     <h1>Task Management System</h1>
@@ -15,7 +24,7 @@
 
         <form action="{% url 'logout' %}" method="post" class="logout-form">
             {% csrf_token %}
-            <button type="submit">Logout</button>
+            <button type="submit">Log-out</button>
 
             
         </form>
@@ -28,11 +37,12 @@
     </form>
 
     <ul>
+      
         {% for task in tasks %}
         <li>
                         
             <div class="task-row">
-                {% if task.status == Status.COMPLETED %}
+                {% if task.status == Status.CANCELLED %}
                                 <s>{{ task.title }}</s>
                             {% else %}
                                 {{ task.title }}
@@ -42,10 +52,19 @@
                 <form action="{% url 'update_status' task.id %}" method="POST">
                     {% csrf_token %}
 
-                    <select name="status" onchange="this.form.submit()">
+                    <select
+                        name="status"
+                        class="status-select"
+                        onchange="updateStatusColor(this); this.form.submit();">
+
                         <option value="{{ Status.NEW }}"
                             {% if task.status == Status.NEW %}selected{% endif %}>
                             New
+                        </option>
+
+                        <option value="{{ Status.URGENT }}"
+                            {% if task.status == Status.URGENT %}selected{% endif %}>
+                            Urgent
                         </option>
 
                         <option value="{{ Status.IN_PROGRESS }}"
@@ -53,21 +72,95 @@
                             In Progress
                         </option>
 
-                        <option value="{{ Status.UNDER_REVIEW }}"
-                            {% if task.status == Status.UNDER_REVIEW %}selected{% endif %}>
-                            Under Review
+                        <option value="{{ Status.PENDING }}"
+                            {% if task.status == Status.PENDING %}selected{% endif %}>
+                            Pending
+                        </option>
+
+                        <option value="{{ Status.FOR_DISCUSSION }}"
+                            {% if task.status == Status.FOR_DISCUSSION %}selected{% endif %}>
+                            For Discussion
+                        </option>
+
+                        <option value="{{ Status.NOT_READY }}"
+                            {% if task.status == Status.NOT_READY %}selected{% endif %}>
+                            Not Ready
+                        </option>
+
+                        <option value="{{ Status.FINISHED }}"
+                            {% if task.status == Status.FINISHED %}selected{% endif %}>
+                            Finished
                         </option>
 
                         <option value="{{ Status.COMPLETED }}"
-                            {% if task.status == Status.COMPLETED %}selected{% endif %}>
+                            {% if task.status == Status.COMPLETED %}selected{% endif %}>    
                             Completed
                         </option>
+
+                        <option value="{{ Status.CLOSED_TO_REOPEN }}"
+                            {% if task.status == Status.CLOSED_TO_REOPEN %}selected{% endif %}>
+                            Closed to Reopen
+                        </option>
+
+                        <option value="{{ Status.CANCELLED }}"
+                            {% if task.status == Status.CANCELLED %}selected{% endif %}>
+                            Cancelled
+                        </option>
+
+                        
+                        
                     </select>
                 </form>
+
+
 
                 <a href="{% url 'delete_task' task.id %}">
                     Delete
                 </a>
+
+                <!-- <button
+                    class="assign-btn"
+
+                    data-task="{{ task.id }}"
+
+                    data-title="{{ task.title }}"
+
+                    data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+
+                    Assign
+
+                </button> -->
+                {% if task.user == request.user %}
+                    <button
+                        class="btn btn-primary assign-btn"
+                        data-task="{{ task.id }}"
+                        data-title="{{ task.title }}"
+                        data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        Assign
+                    </button>
+                {% endif %}
+
+                <small>
+
+                <strong>Owner:</strong>
+                {{ task.user.username }}
+
+|
+                <strong>Assigned to:</strong>
+                    
+
+                    {% if task.assigned_to.exists %}
+
+                        {% for person in task.assigned_to.all %}
+                            {{ person.username }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+
+                    {% else %}
+
+                        None
+
+                    {% endif %}
+                </small>
 
             </div>
         </li>
@@ -75,15 +168,342 @@
             {% endfor %}
     </ul>
 
-    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
+    <div class="modal fade"
+        id="assignModal"
+        tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Assign Task
+                    </h5>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <form
+                        id="assignForm"
+                        method="POST">
+
+                        {% csrf_token %}
+
+                        <select
+                            id="userSelect"
+                            name="assigned_to"
+                            multiple
+                            style="width:100%;">
+
+                            {% for user in users %}
+
+                            <option
+                                value="{{ user.id }}">
+
+                                {{ user.username }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </form>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+                    <button
+                        class="btn btn-success"
+                        id="confirmAssign">
+
+                        Save Assignment
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="modal fade" id="confirmAssignModal" tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+
+                        Confirm Assignment
+
+                    </h5>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p id="confirmAssignText"></p>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        No
+
+                    </button>
+
+                    <button
+                        id="confirmAssignYes"
+                        class="btn btn-success">
+
+                        Yes
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        $("#userSelect").select2({
+
+            dropdownParent: $("#assignModal"),
+
+            placeholder: "Search users",
+
+            closeOnSelect: false
+
+        });
+
+        let currentTask = null;
+
+        // $(".assign-btn").click(function(){
+
+        //     currentTask = $(this).data("task");
+
+        //     $("#assignForm").attr(
+
+        //         "action",
+
+        //         "/assign/" + currentTask + "/"
+
+        //     );
+
+        //     new bootstrap.Modal(
+
+        //         document.getElementById("assignModal")
+
+        //     ).show();
+
+        // });
+        $(".assign-btn").click(function(){
+
+            currentTask = $(this).data("task");
+
+            let assignedUsers =
+                $(this).data("users");
+
+            $("#assignForm").attr(
+
+                "action",
+
+                "/assign/" + currentTask + "/"
+
+            );
+
+            $("#userSelect").val(null).trigger("change");
+
+            if(assignedUsers){
+
+                let ids =
+                    assignedUsers.toString().split(",");
+
+                $("#userSelect")
+                    .val(ids)
+                    .trigger("change");
+
+            }
+
+            new bootstrap.Modal(
+
+                document.getElementById("assignModal")
+
+            ).show();
+
+        });
+
+        // $("#confirmAssign").click(function(){
+
+        //     $("#assignForm").submit();
+
+        // });
+        $("#confirmAssign").click(function(){
+
+            // let usernames = [];
+
+            // $("#userSelect option:selected").each(function(){
+
+            //     usernames.push($(this).text());
+
+            // }); 
+
+            let usernames = $("#userSelect").select2("data").map(function(user){
+
+                return user.text;
+
+            });
+
+            if(usernames.length === 0){
+
+                $("#confirmAssignText").html(
+
+                    "<strong>No users selected.</strong><br><br>Remove all assignees from this task?"
+
+                );
+
+            }
+
+            else{
+
+                $("#confirmAssignText").html(
+
+                    // "Assign this task to:<br><br><strong>"
+
+                    // + usernames.join(", ")
+
+                    // + "</strong> ?"
+                    "Assign <strong>"
+
+                    + $(".assign-btn[data-task='"+currentTask+"']").data("title")
+
+                    + "</strong><br><br>to:<br><br><strong>"
+
+                    + usernames.join(", ")
+
+                    + "</strong> ?"
+
+                );
+
+            }
+
+            let assignModal = bootstrap.Modal.getInstance(
+
+                document.getElementById("assignModal")
+
+            );
+
+            assignModal.hide();
+
+            new bootstrap.Modal(
+
+                document.getElementById("confirmAssignModal")
+
+            ).show();
+
+        });
+
+        $("#confirmAssignYes").click(function(){
+
+            $("#assignForm").submit();
+
+        });
+
+
+        function updateStatusColor(select){
+
+            select.className = "status-select";
+
+            switch(select.value){
+
+                case "NEW":
+                    select.classList.add("status-new");
+                    break;
+
+                case "URGENT":
+                    select.classList.add("status-urgent");
+                    break;
+
+                case "IN_PROGRESS":
+                    select.classList.add("status-progress");
+                    break;
+
+                case "PENDING":
+                    select.classList.add("status-pending");
+                    break;
+
+                case "FOR_DISCUSSION":
+                    select.classList.add("status-discussion");
+                    break;
+
+                case "NOT_READY":
+                    select.classList.add("status-notready");
+                    break;
+
+                case "FINISHED":
+                    select.classList.add("status-finished");
+                    break;
+
+                case "COMPLETED":
+                    select.classList.add("status-completed");
+                    break;
+
+                case "CLOSED_TO_REOPEN":
+                    select.classList.add("status-reopen");
+                    break;
+
+                case "CANCELLED":
+                    select.classList.add("status-cancelled");
+                    break;
+
+            }
+
+        }
+
+        document.querySelectorAll(".status-select").forEach(function(select){
+
+            updateStatusColor(select);
+
+        });
+    </script>
 </body>
 
 <style>
     .logout-form {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
+        position: absolute;
+        top: 20px;
+        right: 20px;
     }
 
     h1{
@@ -99,6 +519,75 @@
 
     .task-row form {
         margin: 0;
+    }
+
+    .assign-btn {
+        border-radius: 8px;
+        padding: 1px 8px;  }
+    
+    .task-row{
+        margin-bottom: 10px;
+        margin-top: 10px;
+        }
+    .status-select{
+        padding:4px 6px;
+        border-radius:20px;
+        border:3px solid #000000;
+        font-weight:bold;
+        transition:0.2s;
+        cursor:pointer;
+    }
+
+    /* Status colours */
+
+    .status-new{
+        background:white;
+        color:black;
+    }
+
+    .status-urgent{
+        background:#FF3B30;
+        color:white;
+    }
+
+    .status-progress{
+        background:#FFC107;
+        color:black;
+    }
+
+    .status-pending{
+        background:#2196F3;
+        color:white;
+    }
+
+    .status-discussion{
+        background:#FF9800;
+        color:white;
+    }
+
+    .status-notready{
+        background:#e4e4e4;
+        color:black;
+    }
+
+    .status-finished{
+        background:#9C27B0;
+        color:white;
+    }
+
+    .status-completed{
+        background:#28A745;
+        color:white;
+    }
+
+    .status-reopen{
+        background:#343A40;
+        color:white;
+    }
+
+    .status-cancelled{
+        background:#6C757D;
+        color:white;
     }
 </style>
 </html>
