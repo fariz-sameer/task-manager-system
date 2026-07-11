@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,9 +9,16 @@
     rel="stylesheet">
 
     <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link
     href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css"
     rel="stylesheet">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Electrolize&display=swap" rel="stylesheet">
    
 
     
@@ -20,153 +28,422 @@
     <h1>Task Management System</h1>
 
     {% if user.is_authenticated %}
-        <p>Welcome, {{ user.username }}</p>
+        <button class="welcome-text">
+            <i class="bi bi-person-fill"></i>
+            {{ user.username }}
+        </button>
 
         <form action="{% url 'logout' %}" method="post" class="logout-form">
             {% csrf_token %}
-            <button type="submit">Log-out</button>
+            <button type="submit" class="btn btn-danger">
+               <i class="bi bi-power"></i> Log Out
+            </button>
 
             
         </form>
     {% endif %}
 
-    <form method="POST" action="{% url 'add_task' %}">
-        {% csrf_token %}
-        <input type="text" name="title" placeholder="Enter task">
-        <button type="submit">Add</button>
-    </form>
+        <div class="task-creator">
+            <form action="{% url 'add_task' %}" method="POST">
+                {% csrf_token %}
 
-    <ul>
-      
-        {% for task in tasks %}
-        <li>
-                        
-            <div class="task-row">
-                {% if task.status == Status.CANCELLED %}
-                                <s>{{ task.title }}</s>
-                            {% else %}
-                                {{ task.title }}
-                            {% endif %}
+                <div class="row align-items-end g-3">
 
+                    <div class="col-md-3">
+                        <label class="form-label"><strong>Task Title</strong></label>
+                        <input type="text" name="title" class="form-control" placeholder="Enter task title">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label"><strong>Company</strong></label>
+                        <select name="company_name" class="form-select">
+                            {% for value, label in Company.choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label"><strong>Deadline</strong></label>
+                        <input type="date" name="deadline" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Description</strong></label>
+                        <input type="text" name="task_details" class="form-control" placeholder="Task description">
+                    </div>
+
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-success mt-4">
+                            Create
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+
+                                        <!-- . . . . . . CODE FOR FILTER FORM . . . . . . -->
+
+        <div class="text-center mb-3">
+
+            <button
+                type="button"
+                id="filterToggle"
+                class="btn btn-dark">
+
+                <i class="bi bi-funnel-fill"></i>
+                Filters
+
+            </button>
+
+        </div>
+
+        <div id="filterPanel">
+
+            <div class="filter-form">
+
+                <form method="GET" class="row g-3 mb-4">    
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select">
+
+                            <option value="">
+                                All Statuses
+                            </option>
+
+                            {% for value,label in Status.choices %}
+
+                                <option
+                                    value="{{ value }}"
+                                    {% if status_filter == value %}selected{% endif %}>
+
+                                    {{ label }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Owner
+                        </label>
+
+                        <select
+                            name="owner"
+                            class="form-select">
+
+                            <option value="">
+                                All Owners
+                            </option>
+
+                            {% for user in users %}
+
+                                <option
+                                    value="{{ user.id }}"
+                                    {% if owner_filter == user.id|stringformat:"s" %}selected{% endif %}>
+
+                                    {{ user.username }}
+
+                                </option>
+
+                            {% endfor %}
+
+                            <option
+                                value="{{ request.user.id }}"
+                                {% if owner_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
+
+                                {{ request.user.username }}
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Assigned To
+                        </label>
+
+                        <select
+                            name="assignee"
+                            class="form-select">
+
+                            <option value="">
+                                All Assignees
+                            </option>
+
+                            {% for user in users %}
+
+                                <option
+                                    value="{{ user.id }}"
+                                    {% if assignee_filter == user.id|stringformat:"s" %}selected{% endif %}>
+
+                                    {{ user.username }}
+
+                                </option>
+
+                            {% endfor %}
+
+                            <option
+                                value="{{ request.user.id }}"
+                                {% if assignee_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
+
+                                {{ request.user.username }}
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+
+                        <button
+                            class="btn btn-primary me-3"
+                            type="submit">
+
+                            Apply Filters
+
+                        </button>
+
+                        <a
+                            href="{% url 'home' %}"
+                            class="btn btn-secondary">
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+
+                                            <!-- . . . . . . CODE FOR TABLE . . . . . .  -->
+
+        <table class="table table-hover align-middle">
+
+            <thead>
+
+                <tr>
+
+                    <th>Task</th>
+
+                    <th>Company</th>
+
+                    <th>Status</th>
+
+                    <th>Deadline</th>
+
+                    <th>Owner</th>
+
+                    <th>Assigned To</th>
+
+                    <th>Actions</th>
+
+                    <th>Updates</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for task in tasks %}
+
+                <tr>
+
+                    <td>
+
+                        <a
+                        href="#"
+                        class="task-link"
+                        data-task="{{ task.id }}">
+
+                        {% if task.status == Status.CANCELLED %}
+                        <s>{{ task.title }}</s>
+                        {% else %}
+                        {{ task.title }}
+                        {% endif %}
+
+                        </a>
+
+                    </td>
+
+                    <td>
+
+                        {{ task.get_company_name_display }}
+
+                    </td>
+
+                    <td>
+
+                        {% if request.user == task.user %}
 
                 <form action="{% url 'update_status' task.id %}" method="POST">
                     {% csrf_token %}
-
                     <select
                         name="status"
                         class="status-select"
                         onchange="updateStatusColor(this); this.form.submit();">
 
-                        <option value="{{ Status.NEW }}"
-                            {% if task.status == Status.NEW %}selected{% endif %}>
-                            New
-                        </option>
+                        <option value="{{ Status.NEW }}" {% if task.status == Status.NEW %}selected{% endif %}>New</option>
 
-                        <option value="{{ Status.URGENT }}"
-                            {% if task.status == Status.URGENT %}selected{% endif %}>
-                            Urgent
-                        </option>
+                        <option value="{{ Status.URGENT }}" {% if task.status == Status.URGENT %}selected{% endif %}>Urgent</option>
 
-                        <option value="{{ Status.IN_PROGRESS }}"
-                            {% if task.status == Status.IN_PROGRESS %}selected{% endif %}>
-                            In Progress
-                        </option>
+                        <option value="{{ Status.IN_PROGRESS }}" {% if task.status == Status.IN_PROGRESS %}selected{% endif %}>In Progress</option>
 
-                        <option value="{{ Status.PENDING }}"
-                            {% if task.status == Status.PENDING %}selected{% endif %}>
-                            Pending
-                        </option>
+                        <option value="{{ Status.PENDING }}" {% if task.status == Status.PENDING %}selected{% endif %}>Pending</option>
 
-                        <option value="{{ Status.FOR_DISCUSSION }}"
-                            {% if task.status == Status.FOR_DISCUSSION %}selected{% endif %}>
-                            For Discussion
-                        </option>
+                        <option value="{{ Status.FOR_DISCUSSION }}" {% if task.status == Status.FOR_DISCUSSION %}selected{% endif %}>For Discussion</option>
 
-                        <option value="{{ Status.NOT_READY }}"
-                            {% if task.status == Status.NOT_READY %}selected{% endif %}>
-                            Not Ready
-                        </option>
+                        <option value="{{ Status.NOT_READY }}" {% if task.status == Status.NOT_READY %}selected{% endif %}>Not Ready</option>
 
-                        <option value="{{ Status.FINISHED }}"
-                            {% if task.status == Status.FINISHED %}selected{% endif %}>
-                            Finished
-                        </option>
+                        <option value="{{ Status.FINISHED }}" {% if task.status == Status.FINISHED %}selected{% endif %}>Finished</option>
 
-                        <option value="{{ Status.COMPLETED }}"
-                            {% if task.status == Status.COMPLETED %}selected{% endif %}>    
-                            Completed
-                        </option>
+                        <option value="{{ Status.COMPLETED }}" {% if task.status == Status.COMPLETED %}selected{% endif %}>Completed</option>
 
-                        <option value="{{ Status.CLOSED_TO_REOPEN }}"
-                            {% if task.status == Status.CLOSED_TO_REOPEN %}selected{% endif %}>
-                            Closed to Reopen
-                        </option>
+                        <option value="{{ Status.CLOSED_TO_REOPEN }}" {% if task.status == Status.CLOSED_TO_REOPEN %}selected{% endif %}>Closed to Reopen</option>
 
-                        <option value="{{ Status.CANCELLED }}"
-                            {% if task.status == Status.CANCELLED %}selected{% endif %}>
-                            Cancelled
-                        </option>
+                        <option value="{{ Status.CANCELLED }}" {% if task.status == Status.CANCELLED %}selected{% endif %}>Cancelled</option>
 
-                        
-                        
                     </select>
+
                 </form>
 
+                {% else %}
 
+                    {% if task.status == Status.IN_PROGRESS or task.status == Status.PENDING or task.status == Status.FOR_DISCUSSION or task.status == Status.NOT_READY or task.status == Status.FINISHED %}
 
-                <a href="{% url 'delete_task' task.id %}">
-                    Delete
-                </a>
+                        <form action="{% url 'update_status' task.id %}" method="POST">
+                            {% csrf_token %}
 
-                <!-- <button
-                    class="assign-btn"
+                            <select
+                                name="status"
+                                class="status-select"
+                                onchange="updateStatusColor(this); this.form.submit();">
 
-                    data-task="{{ task.id }}"
+                                <option value="{{ Status.IN_PROGRESS }}" {% if task.status == Status.IN_PROGRESS %}selected{% endif %}>In Progress</option>
 
-                    data-title="{{ task.title }}"
+                                <option value="{{ Status.PENDING }}" {% if task.status == Status.PENDING %}selected{% endif %}>Pending</option>
 
-                    data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                <option value="{{ Status.FOR_DISCUSSION }}" {% if task.status == Status.FOR_DISCUSSION %}selected{% endif %}>For Discussion</option>
 
-                    Assign
+                                <option value="{{ Status.NOT_READY }}" {% if task.status == Status.NOT_READY %}selected{% endif %}>Not Ready</option>
 
-                </button> -->
-                {% if task.user == request.user %}
-                    <button
-                        class="btn btn-primary assign-btn"
-                        data-task="{{ task.id }}"
-                        data-title="{{ task.title }}"
-                        data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                        Assign
-                    </button>
-                {% endif %}
+                                <option value="{{ Status.FINISHED }}" {% if task.status == Status.FINISHED %}selected{% endif %}>Finished</option>
 
-                <small>
+                            </select>
 
-                <strong>Owner:</strong>
-                {{ task.user.username }}
-
-|
-                <strong>Assigned to:</strong>
-                    
-
-                    {% if task.assigned_to.exists %}
-
-                        {% for person in task.assigned_to.all %}
-                            {{ person.username }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
+                        </form>
 
                     {% else %}
 
-                        None
+                        <span   
+                            class="status-select"
+                            id="readonly-status">
+
+                            {{ task.get_status_display }}
+
+                        </span>
 
                     {% endif %}
-                </small>
 
-            </div>
-        </li>
+                {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {{ task.deadline|date:"d M Y" }}
+
+                    </td>
+                    
+                    <td>
+
+                        {{ task.user.username }}
+
+                    </td>
+
+                    <td>
+
+                        {% for person in task.assigned_to.all %}
+
+                        <span class="badge bg-secondary">
+
+                        {{ person.username }}
+
+                        </span>
+
+                        {% endfor %}
+
+                    </td>
+
+                    <td>
+
+                        {% if request.user == task.user %}
+
+                            <button
+                                class="btn btn-primary btn-sm assign-btn"
+                                data-task="{{ task.id }}"
+                                data-title="{{ task.title }}"
+                                data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                Assign
+                            </button>
+
+                            <a
+                                href="{% url 'delete_task' task.id %}"
+                                class="btn btn-danger btn-sm">
+                                Delete
+                            </a>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if task.unread_count %}
+
                         
-            {% endfor %}
-    </ul>
+
+                        <span
+                        id="notification-{{ task.id }}"
+                        class="badge rounded-pill bg-danger">
+
+                        {{ task.unread_count }} New
+
+                        </span>
+
+                        {% endif %}
+                    </td>
+                    
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -296,6 +573,98 @@
 
     </div>
 
+    <div class="offcanvas offcanvas-end"
+        tabindex="-1"
+        id="taskDrawer">
+
+        <div class="offcanvas-header">
+
+            <h4 id="drawerTitle">
+
+                Loading...
+
+            </h4>
+
+            <button
+                class="btn-close"
+                data-bs-dismiss="offcanvas">
+
+            </button>
+
+        </div>
+
+        <div class="offcanvas-body">
+
+            <div id="drawerContent">
+
+                Loading task...
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade"
+        id="editActivityModal"
+        tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+
+                        Edit Progress Update
+
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <textarea
+                        id="editActivityMessage"
+                        class="form-control"
+                        rows="5">
+                    </textarea>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+                    <button
+                        class="btn btn-success"
+                        id="saveActivityEdit">
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <script>
         $("#userSelect").select2({
 
@@ -309,28 +678,14 @@
 
         let currentTask = null;
 
-        // $(".assign-btn").click(function(){
-
-        //     currentTask = $(this).data("task");
-
-        //     $("#assignForm").attr(
-
-        //         "action",
-
-        //         "/assign/" + currentTask + "/"
-
-        //     );
-
-        //     new bootstrap.Modal(
-
-        //         document.getElementById("assignModal")
-
-        //     ).show();
-
-        // });
+        
         $(".assign-btn").click(function(){
 
             currentTask = $(this).data("task");
+
+            let editingActivity = null;
+
+            let editingButton = null;
 
             let assignedUsers =
                 $(this).data("users");
@@ -440,6 +795,284 @@
 
         });
 
+        $(".task-link").click(function(e){
+
+            e.preventDefault();
+
+            let taskId = $(this).data("task");
+
+            window.currentTask = taskId;
+
+            let drawer = new bootstrap.Offcanvas(
+                document.getElementById("taskDrawer")
+            );
+
+            $("#drawerTitle").text("Loading...");
+
+            $("#drawerContent").html(
+                "<p>Loading task...</p>"
+            );
+
+            drawer.show();
+
+            $.get(
+                "/task/" + taskId + "/data/",
+                function(task){
+
+                    $("#drawerTitle").text(
+                        task.title
+                    );
+
+                    let users = "";
+
+                    task.assignees.forEach(function(name){
+
+                        users +=
+                        "<span class='badge bg-primary me-1'>"
+                        + name +
+                        "</span>";
+
+                    });
+
+                    let activityHtml = "";
+
+                    if(task.activities.length === 0){
+
+                        activityHtml = `
+
+                            <p class="text-muted">
+
+                                No activity yet.
+
+                            </p>
+
+                        `;
+
+                    }
+                    else{
+
+                        task.activities.forEach(function(activity){
+
+                            let buttons = "";
+
+                                if(activity.type === "COMMENT"){
+
+                                    if(activity.owner === task.current_user){
+
+                                        buttons +=
+                                        `
+                                        <button
+                                            class="btn btn-sm btn-outline-primary edit-activity"
+                                            data-id="${activity.id}">
+
+                                            Edit
+
+                                        </button>
+                                        `;
+                                    }
+
+                                }
+
+                                if(activity.owner === task.current_user || task.is_owner){
+
+                                    buttons +=
+                                    `
+                                    <button
+                                        class="btn btn-sm btn-outline-danger delete-activity"
+                                        data-id="${activity.id}">
+
+                                        Delete
+
+                                    </button>
+                                    `;
+                                }
+
+                                activityHtml += `
+
+                                <div class="activity-item">
+
+                                    <small>
+
+                                        ${activity.time}
+
+                                    </small>
+
+                                    <br>
+
+                                    <strong>
+
+                                        ${activity.user}
+
+                                        </strong>
+
+                                        <p class="activity-message mt-2">
+
+                                        ${activity.message}
+
+                                        </p>    
+
+                                        
+
+                                    <br><br>
+
+                                    ${buttons}
+
+                                </div>
+
+                                `;
+
+                        });
+
+                    }
+
+                    $("#saveActivityEdit").click(function(){
+
+                        let updated = $("#editActivityMessage").val();
+
+                        $.post(
+
+                            "/activity/" + editingActivity + "/edit/",
+
+                            {
+
+                                message: updated,
+
+                                csrfmiddlewaretoken:
+                                $("input[name=csrfmiddlewaretoken]").first().val()
+
+                            },
+
+                            function(){
+
+                                bootstrap.Modal.getInstance(
+
+                                    document.getElementById(
+                                        "editActivityModal"
+                                    )
+
+                                ).hide();
+
+                                $(".task-link[data-task='"+window.currentTask+"']").click();
+
+                            }
+
+                        );
+
+                    });
+
+
+                    $("#drawerContent").html(
+
+                        `
+                        <div class="drawer-section">
+
+                            <h6>Status</h6>
+
+                            <p>${task.status}</p>
+
+                        </div>
+
+                        <div class="drawer-section">
+
+                            <h6>Company</h6>
+
+                            <p>${task.company}</p>
+
+                        </div>
+
+                        <div class="drawer-section">
+
+                            <h6>Deadline</h6>
+
+                            <p>${task.deadline}</p>
+
+                        </div>
+
+                        <div class="drawer-section">
+
+                            <h6>Owner</h6>
+
+                            <p>${task.owner}</p>
+
+                        </div>
+
+                        <div class="drawer-section">
+
+                            <h6>Assigned Users</h6>
+
+                            ${users}
+
+                        </div>
+
+                        <div class="drawer-section">
+
+                            <h6>Description</h6>
+
+                            <p>${task.details}</p>
+
+                        </div>
+
+                        <hr>
+
+                        <div class="drawer-section">
+
+                            <h6>Activity</h6>
+
+                                ${activityHtml}
+
+                        </div>
+
+                        <hr>
+
+                        <div class="drawer-section">
+
+                            <h6>
+
+                                Progress Update
+
+                            </h6>
+
+                            <textarea
+                                id="progressMessage"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Write your progress update..."></textarea>
+
+                            <button
+                                class="btn btn-success mt-3"
+                                id="postUpdate">
+
+                                Post Update
+
+                            </button>
+
+                        </div>
+
+                        `
+                    );
+
+                }
+
+            );
+
+           $("#notification-" + taskId)
+
+                .removeClass("bg-danger")
+
+                .addClass("bg-success")
+
+                .text("Seen");
+
+            // setTimeout(function(){
+
+            //     $("#notification-" + taskId).fadeOut();
+
+            // },1000);
+
+        });
+
+        
+
 
         function updateStatusColor(select){
 
@@ -496,52 +1129,391 @@
             updateStatusColor(select);
 
         });
+
+        $(document).on("click", "#postUpdate", function(){
+
+            let message = $("#progressMessage").val();
+
+            if(message.trim() === ""){
+
+                return;
+
+            }
+
+            $.post(
+
+                "/task/" + window.currentTask + "/comment/",
+
+                {
+
+                    message: message,
+
+                    csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").first().val()
+
+                },
+
+                function(){
+
+                    $(".task-link[data-task='"+window.currentTask+"']").click();
+
+                }
+
+            );
+
+        });
+
+        $(document).on(
+
+            "click",
+
+            ".delete-activity",
+
+            function(){
+
+                if(!confirm("Delete this activity?")){
+
+                    return;
+
+                }
+
+                let id = $(this).data("id");
+
+                $.post(
+
+                    "/activity/" + id + "/delete/",
+
+                    {
+
+                        csrfmiddlewaretoken:
+                        $("input[name=csrfmiddlewaretoken]").first().val()
+
+                    },
+
+                    function(){
+
+                        $(".task-link[data-task='"+window.currentTask+"']").click();
+
+                    }
+
+                );
+
+            }
+
+        );
+
+        $(document).on(
+
+    "click",
+
+    ".edit-activity",
+
+    function(){
+
+        editingActivity = $(this).data("id");
+
+        editingButton = $(this);
+
+        let message = $(this)
+            .closest(".activity-item")
+            .find(".activity-message")
+            .text()
+            .trim();
+
+        $("#editActivityMessage").val(message);
+
+        new bootstrap.Modal(
+
+            document.getElementById("editActivityModal")
+
+        ).show();
+
+    }
+
+);
+
+document.querySelectorAll("#readonly-status").forEach(function(status){
+
+    switch(status.innerText.trim()){
+
+        case "New":
+            status.style.background = "#C4F9CC";
+            break;
+
+        case "Urgent":
+            status.style.background = "#FF3B30";
+            status.style.color = "white";
+            break;
+
+        // case "In Progress":
+        //     status.style.background = "#fd7e14";
+        //     break;
+
+        // case "Pending":
+        //     status.style.background = "#ffc107";
+        //     status.style.color = "#000";
+        //     break;
+
+        // case "For Discussion":
+        //     status.style.background = "#6f42c1";
+        //     break;
+
+        // case "Not Ready":
+        //     status.style.background = "#6c757d";
+        //     break;
+
+        // case "Finished":
+        //     status.style.background = "#20c997";
+        //     break;
+
+        case "Completed":
+            status.style.background = "#198754";
+            break;
+
+        case "Closed to Reopen":
+            status.style.background = "#343A40  ";
+            status.style.color = "white";
+            break;
+
+        case "Cancelled":
+            status.style.background = "#6C757D";
+            status.style.color = "white";
+            break;
+
+    }
+
+});
+
+document.querySelectorAll(".auto-expand").forEach(function(textarea){
+
+    textarea.addEventListener("input", function(){
+
+        this.style.height = "auto";
+
+        this.style.height = this.scrollHeight + "px";
+
+    });
+
+});
+
+$("#filterToggle").click(function(){
+
+    $("#filterPanel").toggleClass("show");
+
+});
+
     </script>
 </body>
 
 <style>
-    .logout-form {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-    }
 
-    h1{
-        text-align: center;
-        color: #333;
-    }
+body{
+    background-color:#EEF5EE;
+}
 
-    .task-row {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+/* .logout-form {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #1B4332   ;
+} */
 
-    .task-row form {
-        margin: 0;
-    }
+.logout-form .btn-danger{
+    border-radius: 20px;
+    border: 2px solid rgb(149, 32, 32);
+    padding: 8px 18px;
+    font-weight: bolder;
+    transition: all .2s ease;
+    top: 20px;
+    right: 20px;
+    position: absolute  ;
+    letter-spacing: 2px;
+}
 
-    .assign-btn {
-        border-radius: 8px;
-        padding: 1px 8px;  }
-    
-    .task-row{
-        margin-bottom: 10px;
-        margin-top: 10px;
-        }
-    .status-select{
-        padding:4px 6px;
-        border-radius:20px;
-        border:3px solid #000000;
-        font-weight:bold;
-        transition:0.2s;
-        cursor:pointer;
-    }
+.logout-form .btn-danger:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(220,53,69,.3);
+}
 
-    /* Status colours */
+/* h1{
+    text-align: center;
+    color: #153427;
+    margin-top: 40px;
+    margin-bottom: 7%;
+    /* font-family: "Ewert", serif;
+    font-weight: 200px;
+    font-size: 50px; */
+    /* font-family: "Doto", sans-serif;
+    font-optical-sizing: auto;    
+    font-style: normal;
+    font-size: 70px;
+} */ 
 
-    .status-new{
-        background:white;
+h1{
+    text-align:center;
+    width:fit-content;
+    margin:40px auto 7%;
+    padding:7px 20px;
+    color:#2D6A4F;
+    background:#e5ebe5eb;
+    border-radius:18px;
+    box-shadow:2px 2px 2px 2px rgba(0,0,0,.15);
+    font-family:"Doto", sans-serif;
+    font-size:85px;
+    letter-spacing:2px;
+    transition: 1.5s ease;
+}
+
+h1:hover{
+    transform:scale(0.9);
+    letter-spacing: 0.5px;
+}
+
+.task-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-text{
+    position:absolute;
+    top:20px;
+    left:20px;
+    display:flex;
+    align-items:center;
+    gap: 5px;
+    background:#2D6A4F;
+    color:white;
+    border:2px rgb(4, 42, 4) solid;
+    border-radius:30px;
+    padding:4px 30px;
+    /* font-size:18px; */
+    transition:all .25s ease;
+    cursor:pointer;
+    font-weight: bolder;
+    letter-spacing: 2px;
+}
+
+.welcome-text:hover{
+    transform:translateY(-1px);
+    background:#40916C;
+    box-shadow:0 8px 20px rgba(45,106,79,.35);
+}
+
+.welcome-text i{
+    font-size:20px;
+    transition:transform .25s ease;
+}
+
+.welcome-text:hover i{
+    animation:wave .5s ease-in-out;
+}
+
+@keyframes wave{
+
+    0%{transform:rotate(0deg);}
+    25%{transform:rotate(20deg);}
+    50%{transform:rotate(-15deg);}
+    75%{transform:rotate(10deg);}
+    100%{transform:rotate(0deg);}
+
+}
+
+.task-row form {
+    margin: 0;
+}
+
+.task-input {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 50px;
+    margin-bottom: 35px;
+}
+
+.task-link {
+    text-decoration: none;
+    color: #1B4332;
+    font-weight: bold;
+    background-color: #FFFFFF;
+    padding: 5px 10px;
+    border-radius: 10px;
+}
+
+.auto-expand{
+
+    resize: none;
+
+    overflow: hidden;
+
+    min-height: 60px;
+
+}
+
+.assign-btn {
+    border-radius: 8px;
+    padding: 1px 12px;
+}
+
+.btn-danger {
+    border-radius: 8px;
+    padding: 1px 12px;
+}
+
+.task-row{
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.text-muted {
+    font-size: 0.9em;
+    border: 1px solid #B7D3C0;
+    border-radius: 10px;
+    padding: 3px 8px;
+}
+
+form > div >input::placeholder {
+    color: #6C8F7B;
+    font-style: italic;
+    border-radius: 10px;
+}
+
+.status-select, #readonly-status{
+    /* padding:4px 6px;
+    border-radius:20px;
+    border:1px solid #ffffff;
+    font-weight:bold;
+    transition:0.2s;
+    cursor:pointer; */
+    width: 200px;
+
+    height: 35px;
+
+    border-radius: 15px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-weight: 600;
+
+    box-sizing: border-box;
+
+}
+
+.status-select{
+
+    appearance: auto;
+
+    padding: 0 40px 0 16px;   /* room for dropdown arrow */
+
+}
+
+/* Status colours */
+
+.status-new{
+        background:rgba(192, 249, 201, 0.944);
         color:black;
     }
 
@@ -589,5 +1561,208 @@
         background:#6C757D;
         color:white;
     }
+
+.offcanvas{
+
+    width:400px;
+    border-radius: 25px;
+}
+
+.offcanvas-header{
+    background-color: #2D6A4F;
+    color: white;
+    border-top-left-radius: 25px;
+
+}
+
+#drawerTitle{
+    font-family: "Electrolize", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 40px;
+    
+}
+
+.drawer-section{
+
+    margin-bottom:25px;
+
+}
+
+.drawer-section h6{
+
+    font-weight:bold;
+
+    color:#2D6A4F;
+
+}
+
+.drawer-section p{
+
+    margin-bottom:0;
+
+}
+
+.badge{
+
+    font-size:14px;
+
+    margin-top:4px;
+
+}
+
+.activity-item{
+
+    padding: 8px 10px;
+
+    border:2px solid #40916C;
+
+    background:#FFFFFF;
+
+    margin-bottom:15px;
+
+    margin-right: 50%;
+
+    border-radius:20px;
+
+}
+
+.activity-item small{
+
+    color:#5C7A68;
+
+}
+
+.activity-message{
+
+    margin-top:12px;
+
+    margin-bottom:6px;
+
+}
+
+.edit-activity,
+
+.delete-activity{
+
+    margin-right: 1px;
+
+}
+
+#readonly-status{
+    padding: 0 16px;
+    /* display:inline-block;
+
+    min-width:135px;
+
+    text-align:center;
+
+    padding:3px 6px;
+
+    border-radius:20px;
+
+    font-weight:bold;
+
+    color:white; */
+
+}
+
+.form-label{
+
+    font-weight:600;
+
+    margin-bottom:6px;
+
+}
+
+.task-creator{
+    margin: 50px 100px 75px 100px;
+    background-color: #b1e5b6d1;
+    padding: 10px 0 15px 15px;
+    border: 1px solid black;
+    border-radius: 20px;
+    text-align: center;
+    transition: all .25 ease;
+    box-shadow: 0 2px 10px rgba(45,106,79,.35)
+}   
+
+.task-creator:hover{
+    transform:translateY(-1px);
+    background:#609b66ac;
+    box-shadow:0 8px 20px rgba(45,106,79,.35);
+}
+
+#taskDrawer{
+
+    width: 45%;
+}
+
+
+
+#filterPanel{
+    overflow:hidden;
+
+    max-height:0;
+
+    opacity:0;
+
+    transform:translateX(-120px);
+
+    transition:
+        max-height .5s ease,
+        opacity .35s ease,
+        transform .5s ease;
+
+}
+#filterPanel.show{
+
+    max-height:500px;
+
+    opacity:1;
+
+    transform:translateX(0);
+
+}
+
+.filter-form{
+    margin:10px 100px 0 100px;
+    max-width: 70rem;
+    margin-left: 29%;
+   
+}
+
+
+.table{
+    border-collapse: separate !important;
+    border-spacing: 3px;
+    padding: 0 20px 0 20px;
+    text-align: center;
+    margin-top: 15px;
+
+}
+
+.table thead th{
+    background-color:#2D6A4F !important;
+    color:rgb(255, 255, 255) !important;
+}
+
+.table tbody td{
+    vertical-align: middle !important;
+}
+
+.form-label{
+
+    font-weight:600;
+
+}
+
+form select{
+
+    border-radius:1px;
+
+}
+
+
+
 </style>
 </html>

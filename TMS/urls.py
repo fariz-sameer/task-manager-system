@@ -48,4 +48,27 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     
+    path(
+        "task/<int:task_id>/data/",
+        views.task_data,
+        name="task_data"
+    ),
+
+    path(
+        "task/<int:task_id>/comment/",
+        views.add_task_comment,
+        name="add_task_comment",
+    ),
+
+    path(
+        "activity/<int:activity_id>/delete/",
+        views.delete_activity,
+        name="delete_activity",
+    ),
+
+    path(
+        "activity/<int:activity_id>/edit/",
+        views.edit_activity,
+        name="edit_activity",
+    ),
 ]
