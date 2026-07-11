@@ -128,4 +128,29 @@ class TaskReadStatus(models.Model):
     class Meta:
 
         unique_together = ("task", "user")
+
+class ActivityAttachment(models.Model):
+
+    activity = models.ForeignKey(
+
+        TaskActivity,
+
+        on_delete=models.CASCADE,
+
+        related_name="attachments"
+
+    )
+
+    file = models.FileField(
+
+        upload_to="activity_attachments/"
+
+    )
+
+    uploaded_at = models.DateTimeField(
+
+        auto_now_add=True
+
+    )
+
     

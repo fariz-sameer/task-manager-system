@@ -8,14 +8,14 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from .models import Task, TaskActivity, TaskReadStatus
+from .models import Task, TaskActivity, TaskReadStatus, ActivityAttachment
 from .forms import SignUpForm
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 
 
-@login_required
+
 @login_required
 def home(request):
 
@@ -84,6 +84,19 @@ def home(request):
 
                 deadline__month=today.month
 
+            )
+        elif deadline_filter == "NEXT_MONTH":
+
+            if today.month == 12:
+                next_month = 1
+                next_year = today.year + 1
+            else:
+                next_month = today.month + 1
+                next_year = today.year
+
+            tasks = tasks.filter(
+                deadline__year=next_year,
+                deadline__month=next_month
             )
 
     tasks = tasks.order_by("-created_at")
@@ -437,37 +450,102 @@ def task_data(request, task_id):
         
         "activities": [
 
-            {
+                {
 
-                "id": activity.id,
+                    "id": activity.id,
 
-                "user": activity.user.username,
+                    "user": activity.user.username,
 
-                "message": activity.message,
+                    "message": activity.message,
 
-                "time": activity.created_at.strftime("%d %b %Y %H:%M"),
+                    "time": activity.created_at.strftime("%d %b %Y %H:%M"),
 
-                "type": activity.activity_type,
+                    "type": activity.activity_type,
 
-                "owner": activity.user.username,
+                    "owner": activity.user.username,
 
-            }
+                    "attachments": [
 
-            for activity in task.activities.all()
+                        {
 
-        ]
-        
+                            "url": attachment.file.url,
+
+                            "name": attachment.file.name.split("/")[-1]
+
+                        }
+
+                        for attachment in activity.attachments.all()
+
+                    ]
+
+                }
+
+                for activity in task.activities.all()
+
+            ]
+                    
     })
+
+# @login_required
+# def add_task_comment(request, task_id):
+
+#     task = get_object_or_404(Task, id=task_id)
+
+#     if (
+#         request.user != task.user
+#         and
+#         request.user not in task.assigned_to.all()
+#     ):
+#         return JsonResponse(
+#             {"success": False},
+#             status=403
+#         )
+
+#     if request.method == "POST":
+
+#         message = request.POST.get("message", "").strip()
+
+#         if message:
+
+#             TaskActivity.objects.create(
+
+#                 task=task,
+
+#                 user=request.user,
+
+#                 message=message,
+
+#                 activity_type=TaskActivity.ActivityType.COMMENT
+
+#             )
+#             for file in request.FILES.getlist("files"):
+
+#                 ActivityAttachment.objects.create(
+
+#                     activity=activity,
+
+#                     file=file
+
+#                 )
+
+#         return JsonResponse(
+#             {"success": True}
+#         )
+
+#     return JsonResponse(
+#         {"success": False},
+#         status=400
+#     )
 
 @login_required
 def add_task_comment(request, task_id):
 
     task = get_object_or_404(Task, id=task_id)
 
+    # Only the owner or an assignee can post updates
     if (
         request.user != task.user
-        and
-        request.user not in task.assigned_to.all()
+        and request.user not in task.assigned_to.all()
     ):
         return JsonResponse(
             {"success": False},
@@ -478,17 +556,40 @@ def add_task_comment(request, task_id):
 
         message = request.POST.get("message", "").strip()
 
-        if message:
+        files = request.FILES.getlist("files")
 
-            TaskActivity.objects.create(
+        # Don't create an empty activity
+        if not message and not files:
 
-                task=task,
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Message or attachment required."
+                },
+                status=400
+            )
 
-                user=request.user,
+        # Create the activity
+        activity = TaskActivity.objects.create(
 
-                message=message,
+            task=task,
 
-                activity_type=TaskActivity.ActivityType.COMMENT
+            user=request.user,
+
+            message=message,
+
+            activity_type=TaskActivity.ActivityType.COMMENT
+
+        )
+
+        # Save all uploaded files
+        for file in files:
+
+            ActivityAttachment.objects.create(
+
+                activity=activity,
+
+                file=file
 
             )
 

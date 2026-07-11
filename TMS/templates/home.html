@@ -86,7 +86,7 @@
 
                                         <!-- . . . . . . CODE FOR FILTER FORM . . . . . . -->
 
-        <div class="text-center mb-3">
+        <div  class="text-center mb-3">
 
             <button
                 type="button"
@@ -212,7 +212,65 @@
 
                     </div>
 
-                    <div class="col-md-3 d-flex align-items-end">
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Deadline
+                        </label>
+
+                        <select
+                            name="deadline"
+                            class="form-select">
+
+                            <option value="">
+                                All Deadlines
+                            </option>
+
+                            <option value="OVERDUE"
+                                {% if deadline_filter == "OVERDUE" %}selected{% endif %}>
+                                Overdue
+                            </option>
+
+                            <option value="TODAY"
+                                {% if deadline_filter == "TODAY" %}selected{% endif %}>
+                                Today
+                            </option>
+
+                            <option value="TOMORROW"
+                                {% if deadline_filter == "TOMORROW" %}selected{% endif %}>
+                                Tomorrow
+                            </option>
+
+                            <option value="THIS_WEEK"
+                                {% if deadline_filter == "THIS_WEEK" %}selected{% endif %}>
+                                This Week
+                            </option>
+
+                            <option value="THIS_MONTH"
+                                {% if deadline_filter == "THIS_MONTH" %}selected{% endif %}>
+                                This Month
+                            </option>
+
+                            <option value="NEXT_MONTH"
+                                {% if deadline_filter == "NEXT_MONTH" %}selected{% endif %}>
+                                Next Month
+                            </option>
+
+                            <option value="THIS_YEAR"
+                                {% if deadline_filter == "THIS_YEAR" %}selected{% endif %}>
+                                This Year
+                            </option>
+
+                            <option value="NO_DEADLINE"
+                                {% if deadline_filter == "NO_DEADLINE" %}selected{% endif %}>
+                                No Deadline
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
 
                         <button
                             class="btn btn-primary me-3"
@@ -836,6 +894,8 @@
 
                     let activityHtml = "";
 
+
+
                     if(task.activities.length === 0){
 
                         activityHtml = `
@@ -852,6 +912,25 @@
                     else{
 
                         task.activities.forEach(function(activity){
+
+                             // Build attachment HTML for THIS activity
+                            let attachments = "";
+
+                            activity.attachments.forEach(function(file){
+
+                                attachments += `
+                                    <div class="mt-2">
+
+                                        <a href="${file.url}" target="_blank">
+
+                                            📎 ${file.name}
+
+                                        </a>
+
+                                    </div>
+                                `;
+
+                            });
 
                             let buttons = "";
 
@@ -912,7 +991,8 @@
                                         </p>    
 
                                         
-
+                                    ${attachments}
+                                    
                                     <br><br>
 
                                     ${buttons}
@@ -1033,10 +1113,24 @@
                             </h6>
 
                             <textarea
+
                                 id="progressMessage"
+
                                 class="form-control"
+
                                 rows="4"
-                                placeholder="Write your progress update..."></textarea>
+
+                            ></textarea>
+
+                            <input
+
+                                type="file"
+
+                                id="progressFiles"
+
+                                multiple
+
+                                class="form-control mt-3">
 
                             <button
                                 class="btn btn-success mt-3"
@@ -1130,35 +1224,84 @@
 
         });
 
+        // $(document).on("click", "#postUpdate", function(){
+
+        //     let message = $("#progressMessage").val();
+
+        //     if(message.trim() === ""){
+
+        //         return;
+
+        //     }
+
+        //     $.post(
+
+        //         "/task/" + window.currentTask + "/comment/",
+
+        //         {
+
+        //             message: message,
+
+        //             csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").first().val()
+
+        //         },
+
+        //         function(){
+
+        //             $(".task-link[data-task='"+window.currentTask+"']").click();
+
+        //         }
+
+        //     );
+
+        // });
         $(document).on("click", "#postUpdate", function(){
 
             let message = $("#progressMessage").val();
 
-            if(message.trim() === ""){
+            if(message.trim() === "" &&
+            $("#progressFiles")[0].files.length === 0){
 
                 return;
 
             }
 
-            $.post(
+            let formData = new FormData();
 
-                "/task/" + window.currentTask + "/comment/",
+            formData.append("message", message);
 
-                {
+            formData.append(
+                "csrfmiddlewaretoken",
+                $("input[name=csrfmiddlewaretoken]").first().val()
+            );
 
-                    message: message,
+            let files = $("#progressFiles")[0].files;
 
-                    csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").first().val()
+            for(let i = 0; i < files.length; i++){
 
-                },
+                formData.append("files", files[i]);
 
-                function(){
+            }
+
+            $.ajax({
+
+                url: "/task/" + window.currentTask + "/comment/",
+
+                type: "POST",
+
+                data: formData,
+
+                processData: false,
+
+                contentType: false,
+
+                success: function(){
 
                     $(".task-link[data-task='"+window.currentTask+"']").click();
 
                 }
 
-            );
+            });
 
         });
 
@@ -1713,6 +1856,7 @@ form > div >input::placeholder {
         opacity .35s ease,
         transform .5s ease;
 
+
 }
 #filterPanel.show{
 
@@ -1724,10 +1868,12 @@ form > div >input::placeholder {
 
 }
 
+
+
 .filter-form{
     margin:10px 100px 0 100px;
     max-width: 70rem;
-    margin-left: 29%;
+    margin-left: 23%;
    
 }
 
