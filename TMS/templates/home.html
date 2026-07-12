@@ -106,7 +106,7 @@
 
             <div class="filter-form">
 
-                <form method="GET" class="row g-3 mb-4">    
+                <form id="filterForm" method="GET" class="row g-3 mb-4">    
 
                     <div class="col-md-2">
 
@@ -282,13 +282,12 @@
 
                         </button>
 
-                        <a
-                            href="{% url 'home' %}"
+                        <button
+                            type="button"
+                            id="resetFilters"
                             class="btn btn-secondary">
-
                             Reset
-
-                        </a>
+                        </button>
 
                     </div>
 
@@ -299,259 +298,7 @@
 
                                             <!-- . . . . . . CODE FOR TABLE . . . . . .  -->
 
-        <div id="taskTableWrapper">
-
-        <table class="table table-hover align-middle">
-
-            <thead>
-
-                <tr>
-
-                    <th>Task</th>
-
-                    <th>Company</th>
-
-                    <th>Status</th>
-
-                    <th>Deadline</th>
-
-                    <th>Owner</th>
-
-                    <th>Assigned To</th>
-
-                    <th>Actions</th>
-
-                    <th>Updates</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                {% for task in tasks %}
-
-                <tr>
-
-                    <td>
-
-                        <a
-                        href="#"
-                        class="task-link"
-                        data-task="{{ task.id }}">
-
-                        {% if task.status == Status.CANCELLED %}
-                        <s>{{ task.title }}</s>
-                        {% else %}
-                        {{ task.title }}
-                        {% endif %}
-
-                        </a>
-
-                    </td>
-
-                    <td>
-
-                        {{ task.get_company_name_display }}
-
-                    </td>
-
-                    <td>
-
-                        {% if request.user == task.user %}
-
-                        <div
-                            class="status-dropdown"
-                            data-task="{{ task.id }}"
-                            data-status="{{ task.status }}">
-
-                            <button
-                                type="button"
-                                class="status-button">
-                            </button>
-
-                            <div class="status-menu">
-
-                                <div class="status-item" data-status="{{ Status.NEW }}">
-                                    New
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.URGENT }}">
-                                    Urgent
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.IN_PROGRESS }}">
-                                    In Progress
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.PENDING }}">
-                                    Pending
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.FOR_DISCUSSION }}">
-                                    For Discussion
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.NOT_READY }}">
-                                    Not Ready
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.FINISHED }}">
-                                    Finished
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.COMPLETED }}">
-                                    Completed
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.CLOSED_TO_REOPEN }}">
-                                    Closed to Reopen
-                                </div>
-
-                                <div class="status-item" data-status="{{ Status.CANCELLED }}">
-                                    Cancelled
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                {% else %}
-
-                    {% if task.status == Status.IN_PROGRESS or task.status == Status.PENDING or task.status == Status.FOR_DISCUSSION or task.status == Status.NOT_READY or task.status == Status.FINISHED %}
-
-                    <div
-                        class="status-dropdown"
-                        data-task="{{ task.id }}"
-                        data-status="{{ task.status }}">
-
-                        <button
-                            type="button"
-                            class="status-button">
-                        </button>
-
-                        <div class="status-menu">
-
-                            <div class="status-item" data-status="{{ Status.IN_PROGRESS }}">
-                                In Progress
-                            </div>
-
-                            <div class="status-item" data-status="{{ Status.PENDING }}">
-                                Pending
-                            </div>
-
-                            <div class="status-item" data-status="{{ Status.FOR_DISCUSSION }}">
-                                For Discussion
-                            </div>
-
-                            <div class="status-item" data-status="{{ Status.NOT_READY }}">
-                                Not Ready
-                            </div>
-
-                            <div class="status-item" data-status="{{ Status.FINISHED }}">
-                                Finished
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {% else %}
-
-                        <div
-                            class="status-dropdown readonly"
-                            data-status="{{ task.status }}">
-
-                            <button
-                                type="button"
-                                class="status-button"
-                                disabled>
-                            </button>
-
-                        </div>
-
-                    {% endif %}
-
-                {% endif %}
-
-                    </td>
-
-                    <td>
-
-                        {{ task.deadline|date:"d M Y" }}
-
-                    </td>
-                    
-                    <td>
-
-                        {{ task.user.username }}
-
-                    </td>
-
-                    <td>
-
-                        {% for person in task.assigned_to.all %}
-
-                        <span class="badge bg-secondary">
-
-                        {{ person.username }}
-
-                        </span>
-
-                        {% endfor %}
-
-                    </td>
-
-                    <td>
-
-                        {% if request.user == task.user %}
-
-                            <button
-                                class="btn btn-primary btn-sm assign-btn"
-                                data-task="{{ task.id }}"
-                                data-title="{{ task.title }}"
-                                data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                                Assign
-                            </button>
-
-                            <a
-                                href="{% url 'delete_task' task.id %}"
-                                class="btn btn-danger btn-sm delete-task"
-                                data-task="{{ task.id }}">
-                                Delete
-                            </a>
-
-                        {% endif %}
-
-                    </td>
-
-                    <td>
-
-                        {% if task.unread_count %}
-
-                        
-
-                        <span
-                        id="notification-{{ task.id }}"
-                        class="badge rounded-pill bg-danger">
-
-                        {{ task.unread_count }} New
-
-                        </span>
-
-                        {% endif %}
-                    </td>
-                    
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-        </div>
+        {% include 'task_table.html' %}
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 

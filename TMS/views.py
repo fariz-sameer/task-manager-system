@@ -12,6 +12,44 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 
+ASSIGNEE_EDITABLE_STATUSES = {
+    Task.Status.IN_PROGRESS,
+    Task.Status.PENDING,
+    Task.Status.FOR_DISCUSSION,
+    Task.Status.NOT_READY,
+    Task.Status.FINISHED,
+}
+
+
+def prepare_task(task, user):
+    latest_activity = task.activities.order_by("-created_at").first()
+
+    task.unread_count = 0
+
+    if latest_activity:
+        read_status, _ = TaskReadStatus.objects.get_or_create(
+            task=task,
+            user=user,
+        )
+
+        if latest_activity.created_at > read_status.last_seen:
+            task.unread_count = task.activities.filter(
+                created_at__gt=read_status.last_seen
+            ).count()
+
+    task.assignee_can_edit = (
+        user != task.user and task.status in ASSIGNEE_EDITABLE_STATUSES
+    )
+
+    return task
+
+
+def prepare_tasks(tasks, user):
+    for task in tasks:
+        prepare_task(task, user)
+
+    return tasks
+
 
 @login_required
 def home(request):
@@ -60,18 +98,7 @@ def home(request):
 
     tasks = tasks.order_by("-created_at")
     users = User.objects.exclude(id=request.user.id)
-    for task in tasks:
-        latest_activity = task.activities.order_by("-created_at").first()
-        task.unread_count = 0
-        if latest_activity:
-            read_status, _ = TaskReadStatus.objects.get_or_create(
-                task=task, user=request.user
-            )
-            if latest_activity.created_at > read_status.last_seen:
-                task.unread_count = task.activities.filter(
-                    created_at__gt=read_status.last_seen
-                ).count()
-
+    tasks = prepare_tasks(tasks, request.user)
     return render(
         request,
         "home.html",
@@ -435,3 +462,65 @@ def edit_activity(request, activity_id):
 
         return JsonResponse({"success": True})
     return JsonResponse({"success": False}, status=400)
+
+
+@login_required
+def task_table_partial(request):
+    tasks = (
+        Task.objects.prefetch_related("assigned_to")
+        .filter(Q(user=request.user) | Q(assigned_to=request.user))
+        .distinct()
+    )
+
+    #
+    # COPY THE FILTER CODE
+    #
+    # FROM home()
+    #
+    # ---------------- Filters ----------------
+
+    status_filter = request.GET.get("status")
+    owner_filter = request.GET.get("owner")
+    assignee_filter = request.GET.get("assignee")
+    deadline_filter = request.GET.get("deadline")
+    if status_filter:
+        tasks = tasks.filter(status=status_filter)
+    if owner_filter:
+        tasks = tasks.filter(user__id=owner_filter)
+    if assignee_filter:
+        tasks = tasks.filter(assigned_to__id=assignee_filter)
+
+    today = timezone.localdate()
+
+    if deadline_filter:
+        if deadline_filter == "OVERDUE":
+            tasks = tasks.filter(deadline__lt=today)
+        elif deadline_filter == "TODAY":
+            tasks = tasks.filter(deadline=today)
+        elif deadline_filter == "TOMORROW":
+            tasks = tasks.filter(deadline=today + timedelta(days=1))
+        elif deadline_filter == "THIS_WEEK":
+            end_of_week = today + timedelta(days=6)
+            tasks = tasks.filter(deadline__range=(today, end_of_week))
+        elif deadline_filter == "THIS_MONTH":
+            tasks = tasks.filter(deadline__year=today.year, deadline__month=today.month)
+        elif deadline_filter == "NEXT_MONTH":
+            if today.month == 12:
+                next_month = 1
+                next_year = today.year + 1
+            else:
+                next_month = today.month + 1
+                next_year = today.year
+            tasks = tasks.filter(deadline__year=next_year, deadline__month=next_month)
+
+    tasks = tasks.order_by("-created_at")
+    prepare_tasks(tasks, request.user)
+
+    return render(
+        request,
+        "task_table.html",
+        {
+            "tasks": tasks,
+            "Status": Task.Status,
+        },
+    )

@@ -1,44 +1,14 @@
-const statusColors = {
-  NEW: {
-    bg: "#C4F9CC",
-    fg: "#000",
-  },
-  URGENT: {
-    bg: "#FF3B30",
-    fg: "#fff",
-  },
-  IN_PROGRESS: {
-    bg: "#FFC107",
-    fg: "#000",
-  },
-  PENDING: {
-    bg: "#2196F3",
-    fg: "#fff",
-  },
-  FOR_DISCUSSION: {
-    bg: "#FF9800",
-    fg: "#fff",
-  },
-  NOT_READY: {
-    bg: "#E4E4E4",
-    fg: "#000",
-  },
-  FINISHED: {
-    bg: "#9C27B0",
-    fg: "#fff",
-  },
-  COMPLETED: {
-    bg: "#28A745",
-    fg: "#fff",
-  },
-  CLOSED_TO_REOPEN: {
-    bg: "#343A40",
-    fg: "#fff",
-  },
-  CANCELLED: {
-    bg: "#6C757D",
-    fg: "#fff",
-  },
+const statusClasses = {
+  NEW: "status-new",
+  URGENT: "status-urgent",
+  IN_PROGRESS: "status-in-progress",
+  PENDING: "status-pending",
+  FOR_DISCUSSION: "status-for-discussion",
+  NOT_READY: "status-not-ready",
+  FINISHED: "status-finished",
+  COMPLETED: "status-completed",
+  CLOSED_TO_REOPEN: "status-closed",
+  CANCELLED: "status-cancelled",
 };
 
 let currentTask = null;
@@ -49,14 +19,26 @@ function getCsrfToken() {
   return $("input[name=csrfmiddlewaretoken]").first().val();
 }
 
+function positionStatusMenu(dropdown) {
+  const menu = dropdown.querySelector(".status-menu");
+
+  dropdown.classList.remove("open-up");
+
+  const rect = dropdown.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const menuHeight = menu.scrollHeight;
+  const spaceBelow = viewportHeight - rect.bottom;
+  const spaceAbove = rect.top;
+
+  if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+    dropdown.classList.add("open-up");
+  }
+}
+
+const allStatusClasses = Object.values(statusClasses);
+
 function paintStatusDropdown(dropdown) {
   const status = dropdown.dataset.status;
-
-  const color = statusColors[status];
-
-  if (!color) {
-    return;
-  }
 
   const button = dropdown.querySelector(".status-button");
 
@@ -71,17 +53,28 @@ function paintStatusDropdown(dropdown) {
         .toLowerCase()
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  button.style.backgroundColor = color.bg;
-  button.style.color = color.fg;
+  // remove all status classes
+  allStatusClasses.forEach(function (cls) {
+    button.classList.remove(cls);
+  });
+
+  const buttonClass = statusClasses[status];
+
+  if (buttonClass) {
+    button.classList.add(buttonClass);
+  }
 
   dropdown.querySelectorAll(".status-item").forEach(function (item) {
     item.classList.remove("active");
 
-    const itemColor = statusColors[item.dataset.status];
+    allStatusClasses.forEach(function (cls) {
+      item.classList.remove(cls);
+    });
 
-    if (itemColor) {
-      item.style.backgroundColor = itemColor.bg;
-      item.style.color = itemColor.fg;
+    const itemClass = statusClasses[item.dataset.status];
+
+    if (itemClass) {
+      item.classList.add(itemClass);
     }
 
     if (item.dataset.status === status) {
@@ -91,17 +84,43 @@ function paintStatusDropdown(dropdown) {
 }
 
 function refreshTaskTable(callback) {
-  $.get(window.location.href, function (html) {
-    $("#taskTableWrapper").html($(html).find("#taskTableWrapper").html());
-    document
-      .querySelectorAll("#taskTableWrapper .status-dropdown")
-      .forEach(function (dropdown) {
-        paintStatusDropdown(dropdown);
-      });
+  const query = $("#filterForm").serialize();
 
-    if (typeof callback === "function") {
-      callback();
-    }
+  $.ajax({
+    url: "/table/",
+    type: "GET",
+    data: query,
+    cache: false,
+
+    success: function (html) {
+      $("#taskTableWrapper").replaceWith(html);
+
+      document
+        .querySelectorAll("#taskTableWrapper .status-dropdown")
+        .forEach(function (dropdown) {
+          paintStatusDropdown(dropdown);
+        });
+
+      if (typeof callback === "function") {
+        callback();
+      }
+    },
+
+    error: function () {
+      alert("Failed to refresh task table.");
+    },
+  });
+}
+
+function refreshTaskDrawer() {
+  if (currentTask) {
+    loadTaskDrawer(currentTask);
+  }
+}
+
+function refreshCurrentTask() {
+  refreshTaskTable(function () {
+    refreshTaskDrawer();
   });
 }
 
@@ -114,6 +133,12 @@ $(function () {
 
   document.querySelectorAll(".status-dropdown").forEach(function (dropdown) {
     paintStatusDropdown(dropdown);
+  });
+
+  $(document).on("submit", "#filterForm", function (e) {
+    e.preventDefault();
+
+    refreshTaskTable();
   });
 
   $(document).on("submit", "#addTaskForm", function (e) {
@@ -198,129 +223,186 @@ $(function () {
 
   const drawer = new bootstrap.Offcanvas(document.getElementById("taskDrawer"));
 
-  $(document).on("click", ".task-link", function (e) {
-    e.preventDefault();
+  function buildActivityHtml(task) {
+    if (task.activities.length === 0) {
+      return `
+      <p class="text-muted">
+        No activity yet.
+      </p>
+    `;
+    }
 
-    const taskId = $(this).data("task");
+    let html = "";
+
+    task.activities.forEach(function (activity) {
+      let attachments = "";
+
+      activity.attachments.forEach(function (file) {
+        attachments += `
+        <div class="mt-2">
+          <a href="${file.url}" target="_blank">
+            📎 ${file.name}
+          </a>
+        </div>
+      `;
+      });
+
+      let buttons = "";
+
+      if (activity.type === "COMMENT" && activity.owner === task.current_user) {
+        buttons += `
+        <button
+          class="btn btn-sm btn-outline-primary edit-activity"
+          data-id="${activity.id}">
+          Edit
+        </button>
+      `;
+      }
+
+      if (activity.owner === task.current_user || task.is_owner) {
+        buttons += `
+        <button
+          class="btn btn-sm btn-outline-danger delete-activity"
+          data-id="${activity.id}">
+          Delete
+        </button>
+      `;
+      }
+
+      html += `
+      <div class="activity-item">
+
+        <small>${activity.time}</small>
+
+        <br>
+
+        <strong>${activity.user}</strong>
+
+        <p class="activity-message mt-2">
+          ${activity.message}
+        </p>
+
+        ${attachments}
+
+        <br><br>
+
+        ${buttons}
+
+      </div>
+    `;
+    });
+
+    return html;
+  }
+
+  function renderTaskDrawer(task) {
+    let users = "";
+
+    task.assignees.forEach(function (name) {
+      users += `
+      <span class="badge bg-primary me-1">
+        ${name}
+      </span>
+    `;
+    });
+
+    $("#drawerTitle").text(task.title);
+
+    $("#drawerContent").html(`
+    <div class="drawer-section">
+      <h6>Status</h6>
+      <p>${task.status}</p>
+    </div>
+
+    <div class="drawer-section">
+      <h6>Company</h6>
+      <p>${task.company}</p>
+    </div>
+
+    <div class="drawer-section">
+      <h6>Deadline</h6>
+      <p>${task.deadline}</p>
+    </div>
+
+    <div class="drawer-section">
+      <h6>Owner</h6>
+      <p>${task.owner}</p>
+    </div>
+
+    <div class="drawer-section">
+      <h6>Assigned Users</h6>
+      ${users}
+    </div>
+
+    <div class="drawer-section">
+      <h6>Description</h6>
+      <p>${task.details}</p>
+    </div>
+
+    <hr>
+
+    <div class="drawer-section">
+      <h6>Activity</h6>
+      ${buildActivityHtml(task)}
+    </div>
+
+    <hr>
+
+    <div class="drawer-section">
+      <h6>Progress Update</h6>
+
+      <textarea
+        id="progressMessage"
+        class="form-control"
+        rows="4">
+      </textarea>
+
+      <input
+        type="file"
+        id="progressFiles"
+        multiple
+        class="form-control mt-3">
+
+      <button
+        class="btn btn-success mt-3"
+        id="postUpdate">
+        Post Update
+      </button>
+
+    </div>
+  `);
+  }
+
+  function loadTaskDrawer(taskId) {
     currentTask = taskId;
 
     $("#drawerTitle").text("Loading...");
     $("#drawerContent").html("<p>Loading task...</p>");
+
     drawer.show();
 
     $.get("/task/" + taskId + "/data/", function (task) {
-      $("#drawerTitle").text(task.title);
-
-      let users = "";
-      task.assignees.forEach(function (name) {
-        users += "<span class='badge bg-primary me-1'>" + name + "</span>";
-      });
-
-      let activityHtml = "";
-      if (task.activities.length === 0) {
-        activityHtml = `
-                    <p class="text-muted">
-                        No activity yet.
-                    </p>
-                `;
-      } else {
-        task.activities.forEach(function (activity) {
-          let attachments = "";
-
-          activity.attachments.forEach(function (file) {
-            attachments += `
-                            <div class="mt-2">
-                                <a href="${file.url}" target="_blank">
-                                    📎 ${file.name}
-                                </a>
-                            </div>
-                        `;
-          });
-
-          let buttons = "";
-
-          if (activity.type === "COMMENT") {
-            if (activity.owner === task.current_user) {
-              buttons += `
-                                <button
-                                    class="btn btn-sm btn-outline-primary edit-activity"
-                                    data-id="${activity.id}">
-                                    Edit
-                                </button>
-                            `;
-            }
-          }
-
-          if (activity.owner === task.current_user || task.is_owner) {
-            buttons += `
-                            <button
-                                class="btn btn-sm btn-outline-danger delete-activity"
-                                data-id="${activity.id}">
-                                Delete
-                            </button>
-                        `;
-          }
-
-          activityHtml += `
-                        <div class="activity-item">
-                            <small>${activity.time}</small>
-                            <br>
-                            <strong>${activity.user}</strong>
-                            <p class="activity-message mt-2">${activity.message}</p>
-                            ${attachments}
-                            <br><br>
-                            ${buttons}
-                        </div>
-                    `;
-        });
-      }
-
-      $("#drawerContent").html(
-        `
-                <div class="drawer-section">
-                    <h6>Status</h6>
-                    <p>${task.status}</p>
-                </div>
-                <div class="drawer-section">
-                    <h6>Company</h6>
-                    <p>${task.company}</p>
-                </div>
-                <div class="drawer-section">
-                    <h6>Deadline</h6>
-                    <p>${task.deadline}</p>
-                </div>
-                <div class="drawer-section">
-                    <h6>Owner</h6>
-                    <p>${task.owner}</p>
-                </div>
-                <div class="drawer-section">
-                    <h6>Assigned Users</h6>
-                    ${users}
-                </div>
-                <div class="drawer-section">
-                    <h6>Description</h6>
-                    <p>${task.details}</p>
-                </div>
-                <hr>
-                <div class="drawer-section">
-                    <h6>Activity</h6>
-                    ${activityHtml}
-                </div>
-                <hr>
-                <div class="drawer-section">
-                    <h6>Progress Update</h6>
-                    <textarea id="progressMessage" class="form-control" rows="4"></textarea>
-                    <input type="file" id="progressFiles" multiple class="form-control mt-3">
-                    <button class="btn btn-success mt-3" id="postUpdate">Post Update</button>
-                </div>
-                `,
-      );
+      renderTaskDrawer(task);
     });
 
     $("#notification-" + taskId)
       .removeClass("bg-danger")
       .addClass("bg-success")
       .text("Seen");
+  }
+
+  $(document).on("click", "#resetFilters", function (e) {
+    const form = $("#filterForm");
+
+    form[0].reset();
+
+    refreshTaskTable();
+  });
+
+  $(document).on("click", ".task-link", function (e) {
+    e.preventDefault();
+
+    loadTaskDrawer($(this).data("task"));
   });
 
   $(document).on("click", ".status-button", function (e) {
@@ -334,7 +416,12 @@ $(function () {
 
     $(".status-dropdown").not(dropdown).removeClass("open");
 
+    if (!dropdown.hasClass("open")) {
+      positionStatusMenu(dropdown[0]);
+    }
+
     dropdown.toggleClass("open");
+
     if (dropdown.hasClass("open")) {
       const activeItem = dropdown.find(".status-item.active")[0];
 
@@ -389,9 +476,11 @@ $(function () {
       },
 
       success: function () {
-        if (window.currentTask == dropdown.dataset.task) {
-          $(".task-link[data-task='" + window.currentTask + "']").click();
-        }
+        refreshTaskTable(function () {
+          if (String(currentTask) === String(dropdown.dataset.task)) {
+            refreshTaskDrawer();
+          }
+        });
       },
 
       error: function () {
@@ -419,11 +508,9 @@ $(function () {
         csrfmiddlewaretoken: getCsrfToken(),
       },
       function () {
-        if (
-          window.currentTask &&
-          String(window.currentTask) === String(link.data("task"))
-        ) {
+        if (currentTask && String(currentTask) === String(link.data("task"))) {
           drawer.hide();
+          currentTask = null;
         }
 
         refreshTaskTable();
@@ -448,13 +535,13 @@ $(function () {
     }
 
     $.ajax({
-      url: "/task/" + window.currentTask + "/comment/",
+      url: "/task/" + currentTask + "/comment/",
       type: "POST",
       data: formData,
       processData: false,
       contentType: false,
       success: function () {
-        $(".task-link[data-task='" + window.currentTask + "']").click();
+        refreshCurrentTask();
       },
     });
   });
@@ -472,7 +559,7 @@ $(function () {
         csrfmiddlewaretoken: getCsrfToken(),
       },
       function () {
-        $(".task-link[data-task='" + window.currentTask + "']").click();
+        refreshCurrentTask();
       },
     );
   });
@@ -506,20 +593,9 @@ $(function () {
           document.getElementById("editActivityModal"),
         ).hide();
 
-        $(".task-link[data-task='" + window.currentTask + "']").click();
+        refreshCurrentTask();
       },
     );
-  });
-
-  document.querySelectorAll(".readonly-status").forEach(function (pill) {
-    const color = statusColors[pill.dataset.status];
-
-    if (!color) {
-      return;
-    }
-
-    pill.style.backgroundColor = color.bg;
-    pill.style.color = color.fg;
   });
 
   document.querySelectorAll(".auto-expand").forEach(function (textarea) {

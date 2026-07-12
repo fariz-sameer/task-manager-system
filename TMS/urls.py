@@ -56,6 +56,11 @@ urlpatterns = [
         views.edit_activity,
         name="edit_activity",
     ),
+    path(
+        "table/",
+        views.task_table_partial,
+        name="task_table_partial",
+    ),
 ]
 
 if settings.DEBUG:

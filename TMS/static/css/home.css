@@ -264,11 +264,36 @@ form>div>input::placeholder {
 
     max-height: 280px;
 
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(-6px) scale(.97);
+
+    pointer-events: none;
+
+    transition:
+        opacity .16s ease,
+        transform .16s ease,
+        visibility .16s;
 
     z-index: 1000;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, .35) transparent;
+}
+
+.status-dropdown.open .status-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.status-dropdown.open-up .status-menu {
+    transform: translateY(6px) scale(.97);
+}
+
+.status-dropdown.open.open-up .status-menu {
+    transform: translateY(0) scale(1);
 }
 
 .status-menu::-webkit-scrollbar {
@@ -500,4 +525,54 @@ form>div>input::placeholder {
 
 .form-label {
     font-weight: 600;
+}
+
+.status-new {
+    background: #C4F9CC;
+    color: #000;
+}
+
+.status-urgent {
+    background: #FF3B30;
+    color: #fff;
+}
+
+.status-in-progress {
+    background: #FFC107;
+    color: #000;
+}
+
+.status-pending {
+    background: #2196F3;
+    color: #fff;
+}
+
+.status-for-discussion {
+    background: #FF9800;
+    color: #fff;
+}
+
+.status-not-ready {
+    background: #E4E4E4;
+    color: #000;
+}
+
+.status-finished {
+    background: #9C27B0;
+    color: #fff;
+}
+
+.status-completed {
+    background: #28A745;
+    color: #fff;
+}
+
+.status-closed {
+    background: #343A40;
+    color: #fff;
+}
+
+.status-cancelled {
+    background: #6C757D;
+    color: #fff;
 }
