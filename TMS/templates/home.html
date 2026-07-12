@@ -361,7 +361,7 @@
                     <select
                         name="status"
                         class="status-select"
-                        onchange="updateStatusColor(this); this.form.submit();">
+                        onchange="this.form.submit();">
 
                         <option value="{{ Status.NEW }}" {% if task.status == Status.NEW %}selected{% endif %}>New</option>
 
@@ -397,7 +397,7 @@
                             <select
                                 name="status"
                                 class="status-select"
-                                onchange="updateStatusColor(this); this.form.submit();">
+                                onchange="this.form.submit();">
 
                                 <option value="{{ Status.IN_PROGRESS }}" {% if task.status == Status.IN_PROGRESS %}selected{% endif %}>In Progress</option>
 
@@ -724,6 +724,49 @@
     </div>
 
     <script>
+        const statusColors = {
+            NEW: {
+                bg: "#C4F9CC",
+                fg: "#000"
+            },
+            URGENT: {
+                bg: "#FF3B30",
+                fg: "#fff"
+            },
+            IN_PROGRESS: {
+                bg: "#FFC107",
+                fg: "#000"
+            },
+            PENDING: {
+                bg: "#2196F3",
+                fg: "#fff"
+            },
+            FOR_DISCUSSION: {
+                bg: "#FF9800",
+                fg: "#fff"
+            },
+            NOT_READY: {
+                bg: "#E4E4E4",
+                fg: "#000"
+            },
+            FINISHED: {
+                bg: "#9C27B0",
+                fg: "#fff"
+            },
+            COMPLETED: {
+                bg: "#28A745",
+                fg: "#fff"
+            },
+            CLOSED_TO_REOPEN: {
+                bg: "#343A40",
+                fg: "#fff"
+            },
+            CANCELLED: {
+                bg: "#6C757D",
+                fg: "#fff"
+            }
+        };
+
         $("#userSelect").select2({
 
             dropdownParent: $("#assignModal"),
@@ -733,6 +776,49 @@
             closeOnSelect: false
 
         });
+
+        $(".status-select").select2({
+
+            minimumResultsForSearch: Infinity,
+
+            width: "200px",
+
+            templateResult: formatStatus,
+
+            templateSelection: formatStatus
+
+        });
+
+        function formatStatus(state){
+
+            if(!state.id){
+
+                return state.text;
+
+            }
+
+            const c = statusColors[state.id];
+
+            if(!c){
+
+                return state.text;
+
+            }
+
+            return $(
+                `<span style="
+                    display:block;
+                    background:${c.bg};
+                    color:${c.fg};
+                    padding:6px 12px;
+                    border-radius:12px;
+                    font-weight:600;
+                ">
+                    ${state.text}
+                </span>`
+            );
+
+        }
 
         let currentTask = null;
 
@@ -1160,62 +1246,6 @@
         
 
 
-        function updateStatusColor(select){
-
-            select.className = "status-select";
-
-            switch(select.value){
-
-                case "NEW":
-                    select.classList.add("status-new");
-                    break;
-
-                case "URGENT":
-                    select.classList.add("status-urgent");
-                    break;
-
-                case "IN_PROGRESS":
-                    select.classList.add("status-progress");
-                    break;
-
-                case "PENDING":
-                    select.classList.add("status-pending");
-                    break;
-
-                case "FOR_DISCUSSION":
-                    select.classList.add("status-discussion");
-                    break;
-
-                case "NOT_READY":
-                    select.classList.add("status-notready");
-                    break;
-
-                case "FINISHED":
-                    select.classList.add("status-finished");
-                    break;
-
-                case "COMPLETED":
-                    select.classList.add("status-completed");
-                    break;
-
-                case "CLOSED_TO_REOPEN":
-                    select.classList.add("status-reopen");
-                    break;
-
-                case "CANCELLED":
-                    select.classList.add("status-cancelled");
-                    break;
-
-            }
-
-        }
-
-        document.querySelectorAll(".status-select").forEach(function(select){
-
-            updateStatusColor(select);
-
-        });
-
         // $(document).on("click", "#postUpdate", function(){
 
         //     let message = $("#progressMessage").val();
@@ -1641,90 +1671,43 @@ form > div >input::placeholder {
     border-radius: 10px;
 }
 
-.status-select, #readonly-status{
-    /* padding:4px 6px;
-    border-radius:20px;
-    border:1px solid #ffffff;
-    font-weight:bold;
-    transition:0.2s;
-    cursor:pointer; */
-    width: 200px;
+.select2-container {
 
-    height: 35px;
+    width: 200px !important;
+
+}
+
+.select2-selection {
+
+    border-radius: 15px !important;
+
+    min-height: 35px !important;
+
+    border: none !important;
+
+    padding: 2px !important;
+
+}
+
+.select2-selection__rendered {
+
+    padding: 0 !important;
+
+}
+
+.select2-results__option {
+
+    padding: 3px 6px;
+
+}
+
+.select2-dropdown {
 
     border-radius: 15px;
 
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-weight: 600;
-
-    box-sizing: border-box;
+    overflow: hidden;
 
 }
-
-.status-select{
-
-    appearance: auto;
-
-    padding: 0 40px 0 16px;   /* room for dropdown arrow */
-
-}
-
-/* Status colours */
-
-.status-new{
-        background:rgba(192, 249, 201, 0.944);
-        color:black;
-    }
-
-    .status-urgent{
-        background:#FF3B30;
-        color:white;
-    }
-
-    .status-progress{
-        background:#FFC107;
-        color:black;
-    }
-
-    .status-pending{
-        background:#2196F3;
-        color:white;
-    }
-
-    .status-discussion{
-        background:#FF9800;
-        color:white;
-    }
-
-    .status-notready{
-        background:#e4e4e4;
-        color:black;
-    }
-
-    .status-finished{
-        background:#9C27B0;
-        color:white;
-    }
-
-    .status-completed{
-        background:#28A745;
-        color:white;
-    }
-
-    .status-reopen{
-        background:#343A40;
-        color:white;
-    }
-
-    .status-cancelled{
-        background:#6C757D;
-        color:white;
-    }
 
 .offcanvas{
 
