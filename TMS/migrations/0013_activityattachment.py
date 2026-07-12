@@ -7,17 +7,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0012_taskreadstatus'),
+        ("TMS", "0012_taskreadstatus"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ActivityAttachment',
+            name="ActivityAttachment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to='activity_attachments/')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('activity', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attachments', to='TMS.taskactivity')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("file", models.FileField(upload_to="activity_attachments/")),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "activity",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attachments",
+                        to="TMS.taskactivity",
+                    ),
+                ),
             ],
         ),
     ]

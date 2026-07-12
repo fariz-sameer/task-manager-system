@@ -6,13 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0005_remove_task_assigned_to_alter_task_status_and_more'),
+        ("TMS", "0005_remove_task_assigned_to_alter_task_status_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.CharField(choices=[('NEW', 'New'), ('URGENT', 'Urgent'), ('IN_PROGRESS', 'In Progress'), ('PENDING', 'Pending'), ('FOR_DISCUSSION', 'For Discussion'), ('NOT_READY', 'Not Ready'), ('FINISHED', 'Finished'), ('COMPLETED', 'Completed'), ('CLOSED_TO_REOPEN', 'Closed to Reopen'), ('CANCELLED', 'Cancelled')], default='NEW', max_length=20),
+            model_name="task",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("NEW", "New"),
+                    ("URGENT", "Urgent"),
+                    ("IN_PROGRESS", "In Progress"),
+                    ("PENDING", "Pending"),
+                    ("FOR_DISCUSSION", "For Discussion"),
+                    ("NOT_READY", "Not Ready"),
+                    ("FINISHED", "Finished"),
+                    ("COMPLETED", "Completed"),
+                    ("CLOSED_TO_REOPEN", "Closed to Reopen"),
+                    ("CANCELLED", "Cancelled"),
+                ],
+                default="NEW",
+                max_length=20,
+            ),
         ),
     ]

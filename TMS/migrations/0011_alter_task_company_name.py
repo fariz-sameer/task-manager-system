@@ -6,13 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0010_taskactivity_activity_type'),
+        ("TMS", "0010_taskactivity_activity_type"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='company_name',
-            field=models.CharField(choices=[('ARACO', 'ARACO'), ('JODAH', 'JODAH'), ('XYZ', 'XYZ Company')], default='ARACO', max_length=20),
+            model_name="task",
+            name="company_name",
+            field=models.CharField(
+                choices=[
+                    ("ARACO", "ARACO"),
+                    ("JODAH", "JODAH"),
+                    ("XYZ", "XYZ Company"),
+                ],
+                default="ARACO",
+                max_length=20,
+            ),
         ),
     ]

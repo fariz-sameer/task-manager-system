@@ -6,17 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0002_task_user'),
+        ("TMS", "0002_task_user"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='task',
-            name='completed',
+            model_name="task",
+            name="completed",
         ),
         migrations.AddField(
-            model_name='task',
-            name='status',
-            field=models.CharField(choices=[('NEW', 'New'), ('IN_PROGRESS', 'In Progress'), ('UNDER_REVIEW', 'Under Review'), ('COMPLETED', 'Completed')], default='NEW', max_length=20),
+            model_name="task",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("NEW", "New"),
+                    ("IN_PROGRESS", "In Progress"),
+                    ("UNDER_REVIEW", "Under Review"),
+                    ("COMPLETED", "Completed"),
+                ],
+                default="NEW",
+                max_length=20,
+            ),
         ),
     ]

@@ -7,23 +7,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0004_task_assigned_to'),
+        ("TMS", "0004_task_assigned_to"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='task',
-            name='assigned_to',
+            model_name="task",
+            name="assigned_to",
         ),
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.CharField(choices=[('NEW', 'New'), ('IN_PROGRESS', 'In Progress'), ('UNDER_REVIEW', 'Under Review'), ('FINISHED', 'Finished')], default='NEW', max_length=20),
+            model_name="task",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("NEW", "New"),
+                    ("IN_PROGRESS", "In Progress"),
+                    ("UNDER_REVIEW", "Under Review"),
+                    ("FINISHED", "Finished"),
+                ],
+                default="NEW",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='assigned_to',
-            field=models.ManyToManyField(blank=True, related_name='assigned_tasks', to=settings.AUTH_USER_MODEL),
+            model_name="task",
+            name="assigned_to",
+            field=models.ManyToManyField(
+                blank=True, related_name="assigned_tasks", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

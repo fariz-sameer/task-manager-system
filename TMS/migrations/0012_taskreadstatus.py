@@ -9,21 +9,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0011_alter_task_company_name'),
+        ("TMS", "0011_alter_task_company_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TaskReadStatus',
+            name="TaskReadStatus",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_seen', models.DateTimeField(default=django.utils.timezone.now)),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='read_statuses', to='TMS.task')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("last_seen", models.DateTimeField(default=django.utils.timezone.now)),
+                (
+                    "task",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="read_statuses",
+                        to="TMS.task",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('task', 'user')},
+                "unique_together": {("task", "user")},
             },
         ),
     ]

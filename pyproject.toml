@@ -1,0 +1,10 @@
+[project]
+name = "task-manager-system"
+version = "0.1.0"
+description = "A web-based task management system for organizing and tracking tasks with features such as task creation, assignment, progress tracking and deadlines."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.0.7",
+    "pre-commit>=4.6.0",
+]

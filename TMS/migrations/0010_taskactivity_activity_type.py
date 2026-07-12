@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('TMS', '0009_taskactivity'),
+        ("TMS", "0009_taskactivity"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='taskactivity',
-            name='activity_type',
-            field=models.CharField(choices=[('SYSTEM', 'System'), ('COMMENT', 'Comment')], default='SYSTEM', max_length=10),
+            model_name="taskactivity",
+            name="activity_type",
+            field=models.CharField(
+                choices=[("SYSTEM", "System"), ("COMMENT", "Comment")],
+                default="SYSTEM",
+                max_length=10,
+            ),
         ),
     ]
