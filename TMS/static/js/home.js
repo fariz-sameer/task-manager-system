@@ -64,7 +64,12 @@ function paintStatusDropdown(dropdown) {
     `.status-item[data-status="${status}"]`,
   );
 
-  button.textContent = selectedItem ? selectedItem.textContent.trim() : status;
+  button.textContent = selectedItem
+    ? selectedItem.textContent.trim()
+    : status
+        .replaceAll("_", " ")
+        .toLowerCase()
+        .replace(/\b\w/g, (c) => c.toUpperCase());
 
   button.style.backgroundColor = color.bg;
   button.style.color = color.fg;
@@ -319,13 +324,26 @@ $(function () {
   });
 
   $(document).on("click", ".status-button", function (e) {
-    e.stopPropagation();
-
     const dropdown = $(this).closest(".status-dropdown");
+
+    if (dropdown.hasClass("readonly")) {
+      return;
+    }
+
+    e.stopPropagation();
 
     $(".status-dropdown").not(dropdown).removeClass("open");
 
     dropdown.toggleClass("open");
+    if (dropdown.hasClass("open")) {
+      const activeItem = dropdown.find(".status-item.active")[0];
+
+      if (activeItem) {
+        activeItem.scrollIntoView({
+          block: "nearest",
+        });
+      }
+    }
   });
 
   $(document).on("click", function () {
@@ -493,28 +511,15 @@ $(function () {
     );
   });
 
-  document.querySelectorAll("#readonly-status").forEach(function (status) {
-    switch (status.innerText.trim()) {
-      case "New":
-        status.style.background = "#C4F9CC";
-        break;
-      case "Urgent":
-        status.style.background = "#FF3B30";
-        status.style.color = "white";
-        break;
-      case "Completed":
-        status.style.background = "#198754";
-        status.style.color = "white";
-        break;
-      case "Closed to Reopen":
-        status.style.background = "#343A40  ";
-        status.style.color = "white";
-        break;
-      case "Cancelled":
-        status.style.background = "#6C757D";
-        status.style.color = "white";
-        break;
+  document.querySelectorAll(".readonly-status").forEach(function (pill) {
+    const color = statusColors[pill.dataset.status];
+
+    if (!color) {
+      return;
     }
+
+    pill.style.backgroundColor = color.bg;
+    pill.style.color = color.fg;
   });
 
   document.querySelectorAll(".auto-expand").forEach(function (textarea) {

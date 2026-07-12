@@ -242,24 +242,54 @@ form>div>input::placeholder {
 }
 
 .status-menu {
+
     position: absolute;
 
     left: 0;
     right: 0;
 
+    margin-top: 4px;
     top: calc(100% + 6px);
+
+    padding-right: 2px;
 
     background: white;
 
     border-radius: 16px;
 
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
 
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    max-height: 280px;
 
     display: none;
 
     z-index: 1000;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, .35) transparent;
+}
+
+.status-menu::-webkit-scrollbar {
+    width: 10px;
+}
+
+.status-menu::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 10px 0;
+}
+
+.status-menu::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.status-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, .38);
+    background-clip: padding-box;
 }
 
 .status-dropdown.open .status-menu {
@@ -267,23 +297,58 @@ form>div>input::placeholder {
 }
 
 .status-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
     padding: 10px 14px;
-
     font-weight: 600;
-
     cursor: pointer;
+    transition:
+        filter .15s ease,
+        background-color .15s ease;
+}
 
-    transition: 0.15s;
+.status-item.active::after {
+    font-family: "bootstrap-icons";
+    content: "\F26E";
+    /* bi-check-lg */
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: currentColor;
+    pointer-events: none;
 }
 
 .status-item:hover {
-    filter: brightness(0.94);
+    filter: brightness(.96);
 }
 
-.status-item.active {
-    outline: 2px solid rgba(255, 255, 255, 0.65);
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 170px;
+    height: 36px;
+    border-radius: 999px;
+    font-weight: 600;
+    user-select: none;
+}
 
-    outline-offset: -2px;
+.status-dropdown.readonly .status-button {
+    cursor: default;
+}
+
+.status-dropdown.readonly .status-button:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.status-dropdown.readonly .status-button::after {
+    display: none;
 }
 
 .select2-dropdown {
@@ -359,22 +424,6 @@ form>div>input::placeholder {
     margin-right: 1px;
 }
 
-#readonly-status {
-    padding: 0 16px;
-    /* display:inline-block;
-
-    min-width:135px;
-
-    text-align:center;
-
-    padding:3px 6px;
-
-    border-radius:20px;
-
-    font-weight:bold;
-
-    color:white; */
-}
 
 .form-label {
     font-weight: 600;

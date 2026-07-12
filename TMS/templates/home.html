@@ -458,13 +458,17 @@
 
                     {% else %}
 
-                        <span   
-                            class="status-select"
-                            id="readonly-status">
+                        <div
+                            class="status-dropdown readonly"
+                            data-status="{{ task.status }}">
 
-                            {{ task.get_status_display }}
+                            <button
+                                type="button"
+                                class="status-button"
+                                disabled>
+                            </button>
 
-                        </span>
+                        </div>
 
                     {% endif %}
 
