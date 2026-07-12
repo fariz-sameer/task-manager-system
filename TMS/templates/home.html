@@ -776,21 +776,9 @@
             ).show();
 
         });
+        
 
-        // $("#confirmAssign").click(function(){
-
-        //     $("#assignForm").submit();
-
-        // });
         $("#confirmAssign").click(function(){
-
-            // let usernames = [];
-
-            // $("#userSelect option:selected").each(function(){
-
-            //     usernames.push($(this).text());
-
-            // }); 
 
             let usernames = $("#userSelect").select2("data").map(function(user){
 
@@ -853,6 +841,10 @@
 
         });
 
+        const drawer = new bootstrap.Offcanvas(
+            document.getElementById("taskDrawer")
+        );
+
         $(".task-link").click(function(e){
 
             e.preventDefault();
@@ -861,9 +853,9 @@
 
             window.currentTask = taskId;
 
-            let drawer = new bootstrap.Offcanvas(
-                document.getElementById("taskDrawer")
-            );
+            // let drawer = new bootstrap.Offcanvas(
+            //     document.getElementById("taskDrawer")
+            // );
 
             $("#drawerTitle").text("Loading...");
 
@@ -992,7 +984,7 @@
 
                                         
                                     ${attachments}
-                                    
+
                                     <br><br>
 
                                     ${buttons}
@@ -1410,6 +1402,7 @@ document.querySelectorAll("#readonly-status").forEach(function(status){
 
         case "Completed":
             status.style.background = "#198754";
+            status.style.color = "white";
             break;
 
         case "Closed to Reopen":
@@ -1450,8 +1443,16 @@ $("#filterToggle").click(function(){
 <style>
 
 body{
-    background-color:#EEF5EE;
+
+    background:linear-gradient(
+        135deg,
+        #EAF8EE,
+        #D5F2DD,
+        #EEF5EE
+    );
 }
+
+
 
 /* .logout-form {
     position: absolute;
@@ -1477,38 +1478,54 @@ body{
     box-shadow: 0 8px 20px rgba(220,53,69,.3);
 }
 
-/* h1{
-    text-align: center;
-    color: #153427;
-    margin-top: 40px;
-    margin-bottom: 7%;
-    /* font-family: "Ewert", serif;
-    font-weight: 200px;
-    font-size: 50px; */
-    /* font-family: "Doto", sans-serif;
-    font-optical-sizing: auto;    
-    font-style: normal;
-    font-size: 70px;
-} */ 
-
 h1{
-    text-align:center;
-    width:fit-content;
-    margin:40px auto 7%;
-    padding:7px 20px;
+
+    font-family:"Doto",sans-serif;
+
     color:#2D6A4F;
-    background:#e5ebe5eb;
-    border-radius:18px;
-    box-shadow:2px 2px 2px 2px rgba(0,0,0,.15);
-    font-family:"Doto", sans-serif;
-    font-size:85px;
-    letter-spacing:2px;
-    transition: 1.5s ease;
+
+    animation: glow 2s ease-in-out infinite;
+    margin-top: 50px;
+    margin-bottom: 100px;
+    font-size: 80px;
+    text-align: center;
+
 }
 
-h1:hover{
-    transform:scale(0.9);
-    letter-spacing: 0.5px;
+@keyframes glow{
+
+    0%{
+
+        text-shadow:
+
+            0 0 5px #2D6A4F,
+
+            0 0 10px #2D6A4F;
+
+    }
+
+    50%{
+
+        text-shadow:
+
+            0 0 15px #8fd19e,
+
+            0 0 30px #8fd19e,
+
+            0 0 45px white;
+
+    }
+
+    100%{
+
+        text-shadow:
+
+            0 0 5px #2D6A4F,
+
+            0 0 10px #2D6A4F;
+
+    }
+
 }
 
 .task-row {
@@ -1549,6 +1566,10 @@ h1:hover{
 
 .welcome-text:hover i{
     animation:wave .5s ease-in-out;
+}
+
+#filterToggle{
+    box-shadow: 0 2px 10px rgba(45,106,79,.35);
 }
 
 @keyframes wave{

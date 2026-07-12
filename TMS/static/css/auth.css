@@ -1,0 +1,496 @@
+/* ===========================
+        BODY
+=========================== */
+
+body{
+
+    margin:0;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    overflow:hidden;
+
+    font-family:Arial, Helvetica, sans-serif;
+
+    background:linear-gradient(
+        -45deg,
+        #0D025D,
+        #1B3C87,
+        #2B78B7,
+        #2D8EC5,
+        #34B2D3,
+        #96E1EF
+    );
+
+    background-size:400% 400%;
+
+    animation:gradientMove 15s ease infinite;
+
+}
+
+
+/* ===========================
+      Animated Background
+=========================== */
+
+@keyframes gradientMove{
+
+    0%{
+
+        background-position:0% 50%;
+
+    }
+
+    50%{
+
+        background-position:100% 50%;
+
+    }
+
+    100%{
+
+        background-position:0% 50%;
+
+    }
+
+}
+
+
+/* ===========================
+      Floating Blobs
+=========================== */
+
+.blob{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    filter:blur(75px);
+
+    opacity:.35;
+
+    animation:float 12s ease-in-out infinite;
+
+}
+
+.blob1{
+
+    width:330px;
+    height:330px;
+
+    left:-120px;
+    top:-120px;
+
+    background:#34B2D3;
+
+}
+
+.blob2{
+
+    width:420px;
+    height:420px;
+
+    right:-150px;
+    bottom:-120px;
+
+    background:#2B78B7;
+
+    animation-delay:3s;
+
+}
+
+.blob3{
+
+    width:250px;
+    height:250px;
+
+    left:72%;
+    top:18%;
+
+    background:#96E1EF;
+
+    animation-delay:6s;
+
+}
+
+@keyframes float{
+
+    50%{
+
+        transform:translateY(-30px);
+
+    }
+
+}
+
+
+/* ===========================
+        CONTAINER
+=========================== */
+
+.auth-container{
+
+    z-index:5;
+
+    text-align:center;
+
+}
+
+
+/* ===========================
+        TITLE
+=========================== */
+
+.auth-container h1{
+
+    font-family:"Doto",sans-serif;
+
+    font-size:72px;
+
+    color:white;
+
+    letter-spacing:5px;
+
+    margin-bottom:35px;
+
+    text-shadow:
+
+        0 0 10px rgba(255,255,255,.45);
+
+}
+
+
+/* ===========================
+        CARD
+=========================== */
+
+.auth-card{
+
+    width:480px;
+
+    padding:45px;
+
+    border-radius:30px;
+
+    background:rgba(255,255,255,.18);
+
+    backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,255,255,.22);
+
+    box-shadow:
+
+        0 20px 45px rgba(0,0,0,.22);
+
+    animation:fadeIn .8s ease;
+
+}
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(40px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+
+/* ===========================
+         ICON
+=========================== */
+
+.auth-icon{
+
+    font-size:72px;
+
+    color:white;
+
+    margin-bottom:15px;
+
+}
+
+
+/* ===========================
+       HEADINGS
+=========================== */
+
+.auth-card h2{
+
+    color:white;
+
+    font-weight:bold;
+
+    margin-bottom:15px;
+
+}
+
+.auth-card p{
+
+    color:white;
+
+    opacity:.9;
+
+    margin-bottom:25px;
+
+}
+
+
+/* ===========================
+      DJANGO INPUTS
+=========================== */
+
+.auth-card input{
+
+    width:100%;
+
+    padding:14px;
+
+    margin-bottom:18px;
+
+    border:none;
+
+    border-radius:15px;
+
+    background:rgba(255,255,255,.88);
+
+    transition:.3s;
+
+}
+
+.auth-card input::placeholder{
+
+    color:#666;
+
+}
+
+.auth-card input:focus{
+
+    outline:none;
+
+    transform:scale(1.02);
+
+    box-shadow:
+
+        0 0 18px rgba(150,225,239,.85);
+
+}
+
+
+/* ===========================
+         BUTTON
+=========================== */
+
+.auth-card button{
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:15px;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    color:white;
+
+    cursor:pointer;
+
+    background:linear-gradient(
+        135deg,
+        #1B3C87,
+        #2D8EC5
+    );
+
+    transition:.3s;
+
+}
+
+.auth-card button:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:
+
+        0 12px 25px rgba(45,142,197,.45);
+
+}
+
+
+/* ===========================
+        BUTTON LINKS
+=========================== */
+
+.btn-link{
+
+    display:block;
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:15px;
+
+    text-decoration:none;
+
+    color:white;
+
+    font-weight:bold;
+
+    background:linear-gradient(
+        135deg,
+        #1B3C87,
+        #2D8EC5
+    );
+
+    transition:.3s;
+
+}
+
+.btn-link:hover{
+
+    color:white;
+
+    transform:translateY(-4px);
+
+    box-shadow:
+
+        0 12px 25px rgba(45,142,197,.45);
+
+}
+
+
+/* ===========================
+        NORMAL LINKS
+=========================== */
+
+.auth-card a{
+
+    color:#D7F7FF;
+
+    text-decoration:none;
+
+    transition:.25s;
+
+}
+
+.auth-card a:hover{
+
+    color:white;
+
+}
+
+.forpass{
+
+    display:block;
+
+    margin-top:15px;
+
+}
+
+
+/* ===========================
+           HR
+=========================== */
+
+.auth-card hr{
+
+    border-color:rgba(255,255,255,.25);
+
+    margin:25px 0;
+
+}
+
+
+/* ===========================
+        DJANGO ERRORS
+=========================== */
+
+.errorlist{
+
+    list-style:none;
+
+    padding:0;
+
+    margin-bottom:15px;
+
+    color:#FFDADA;
+
+    font-weight:bold;
+
+}
+
+
+/* ===========================
+      HELP TEXT
+=========================== */
+
+.helptext{
+
+    display:block;
+
+    color:#F1F1F1;
+
+    font-size:13px;
+
+    margin-bottom:15px;
+
+}
+
+
+/* ===========================
+       LABELS
+=========================== */
+
+.auth-card label{
+
+    color:white;
+
+    font-weight:600;
+
+    margin-bottom:5px;
+
+    display:block;
+
+}
+
+
+/* ===========================
+       RESPONSIVE
+=========================== */
+
+@media(max-width:600px){
+
+    .auth-card{
+
+        width:90vw;
+
+        padding:30px;
+
+    }
+
+    .auth-container h1{
+
+        font-size:42px;
+
+    }
+
+}
