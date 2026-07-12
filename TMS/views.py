@@ -3,7 +3,6 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 
-from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.models import User
 
@@ -91,26 +90,30 @@ def home(request):
 
 @login_required
 def add_task(request):
-    if request.method == "POST":
-        title = request.POST.get("title")
-        company_name = request.POST.get("company_name")
-        deadline = request.POST.get("deadline")
-        task_details = request.POST.get("task_details", "")
-        task = Task.objects.create(
-            user=request.user,
-            title=title,
-            company_name=company_name,
-            deadline=deadline if deadline else None,
-            task_details=task_details,
-            status=Task.Status.NEW,
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "error": "Invalid request method."}, status=400
         )
+
+    title = request.POST.get("title")
+    company_name = request.POST.get("company_name")
+    deadline = request.POST.get("deadline")
+    task_details = request.POST.get("task_details", "")
+    task = Task.objects.create(
+        user=request.user,
+        title=title,
+        company_name=company_name,
+        deadline=deadline if deadline else None,
+        task_details=task_details,
+        status=Task.Status.NEW,
+    )
     task.assigned_to.add(request.user)
 
     TaskActivity.objects.create(
         task=task, user=request.user, message="created the task."
     )
 
-    return redirect("home")
+    return JsonResponse({"success": True, "task_id": task.id})
 
 
 @login_required
@@ -143,7 +146,9 @@ def assign_task(request, task_id):
             message=f"updated assignees to: {', '.join(new_users)}.",
         )
 
-    return redirect("home")
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False}, status=400)
 
 
 # @login_required
@@ -181,45 +186,59 @@ def update_status(request, task_id):
 
     # Only the owner or an assignee can update the status
     if request.user != task.user and request.user not in task.assigned_to.all():
-        messages.error(request, "You do not have permission to update this task.")
-        return redirect("home")
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "You do not have permission to update this task.",
+            },
+            status=403,
+        )
 
-    if request.method == "POST":
-        new_status = request.POST["status"]
-        # Statuses only the owner can set
-        owner_only_statuses = [
-            Task.Status.NEW,
-            Task.Status.URGENT,
-            Task.Status.COMPLETED,
-            Task.Status.CLOSED_TO_REOPEN,
-            Task.Status.CANCELLED,
-        ]
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "error": "Invalid request method."}, status=400
+        )
 
-        # Assignee trying to use an owner-only status
-        if request.user != task.user and new_status in owner_only_statuses:
-            messages.error(request, "Only the task owner can select that status.")
-            return redirect("home")
+    new_status = request.POST.get("status")
+    if not new_status:
+        return JsonResponse({"success": False, "error": "Missing status."}, status=400)
 
-        old_display = task.get_status_display()
-        task.status = new_status
-        task.save()
-        new_display = task.get_status_display()
+    # Statuses only the owner can set
+    owner_only_statuses = [
+        Task.Status.NEW,
+        Task.Status.URGENT,
+        Task.Status.COMPLETED,
+        Task.Status.CLOSED_TO_REOPEN,
+        Task.Status.CANCELLED,
+    ]
 
-        if old_display != new_display:
-            TaskActivity.objects.create(
-                task=task,
-                user=request.user,
-                message=f"changed the status from '{old_display}' to '{new_display}'.",
-            )
+    # Assignee trying to use an owner-only status
+    if request.user != task.user and new_status in owner_only_statuses:
+        return JsonResponse(
+            {"success": False, "error": "Only the task owner can select that status."},
+            status=403,
+        )
 
-    return redirect("home")
+    old_display = task.get_status_display()
+    task.status = new_status
+    task.save()
+    new_display = task.get_status_display()
+
+    if old_display != new_display:
+        TaskActivity.objects.create(
+            task=task,
+            user=request.user,
+            message=f"changed the status from '{old_display}' to '{new_display}'.",
+        )
+
+    return JsonResponse({"success": True})
 
 
 @login_required
 def delete_task(request, task_id):
-    task = Task.objects.get(id=task_id, user=request.user)
+    task = get_object_or_404(Task, id=task_id, user=request.user)
     task.delete()
-    return redirect("home")
+    return JsonResponse({"success": True})
 
 
 def signup(request):
