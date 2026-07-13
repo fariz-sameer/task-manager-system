@@ -345,31 +345,55 @@ $(function () {
       <h6>Activity</h6>
       ${buildActivityHtml(task)}
     </div>
+  `);
 
-    <hr>
+    $("#drawerFooter").html(`
 
-    <div class="drawer-section">
       <h6>Progress Update</h6>
 
       <textarea
         id="progressMessage"
         class="form-control"
-        rows="4">
+        rows="4"
+        placeholder="Write your progress update...">
       </textarea>
-
-      <input
-        type="file"
-        id="progressFiles"
-        multiple
-        class="form-control mt-3">
 
       <button
         class="btn btn-success mt-3"
         id="postUpdate">
         Post Update
       </button>
+      <div class="upload-actions">
+          <label for="progressFiles" class="custom-upload">
+              <div class="upload-icon">
+                  <i class="bi bi-cloud-arrow-up-fill"></i>
+              </div>
+              <div class="upload-text">
+                  <h6>Upload Attachments</h6>
+                  <small>
+                      JPG • PNG • PDF • DOCX • XLSX • ZIP
+                      <br>
+                      <strong>Maximum 10 MB per file</strong>
+                  </small>
+              </div>
+          </label>
+          
+      </div>
 
-    </div>
+          <input
+              type="file"
+              id="progressFiles"
+              multiple
+              hidden>
+          <div id="selectedFiles" class="mt-3"></div>
+
+          <input
+              type="file"
+              id="progressFiles"
+              multiple
+              hidden>
+          <div id="selectedFiles"></div>
+
   `);
   }
 
@@ -389,6 +413,37 @@ $(function () {
       .removeClass("bg-danger")
       .addClass("bg-success")
       .text("Seen");
+  }
+
+  $(document).on("click", "#postUpdate", function () {
+    let message = $("#progressMessage").val();
+
+    if (message.trim() === "" && $("#progressFiles")[0].files.length === 0) {
+      return;
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+    let files = $("#progressFiles")[0].files;
+
+    // Validate every file BEFORE uploading
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > MAX_SIZE) {
+        alert(`"${files[i].name}" exceeds the 10 MB limit.`);
+
+        return;
+      }
+    }
+  });
+
+  let formData = new FormData();
+  formData.append("message", message);
+  formData.append(
+    "csrfmiddlewaretoken",
+    $("input[name=csrfmiddlewaretoken]").first().val(),
+  );
+  for (let i = 0; i < files.length; i++) {
+    formData.append("files", files[i]);
   }
 
   $(document).on("click", "#resetFilters", function (e) {
@@ -544,6 +599,38 @@ $(function () {
         refreshCurrentTask();
       },
     });
+  });
+
+  $(document).on("change", "#progressFiles", function () {
+    const MAX_SIZE = 10 * 1024 * 1024;
+
+    let html = "";
+
+    for (let file of this.files) {
+      if (file.size > MAX_SIZE) {
+        alert(`${file.name} exceeds the 10 MB limit.`);
+        this.value = "";
+        $("#selectedFiles").html("");
+        return;
+      }
+      let size = (file.size / 1024 / 1024).toFixed(2);
+      html += `
+            <div class="selected-file">
+                <div class="file-left">
+                    <i class="bi bi-file-earmark"></i>
+                    <div>
+                        <div class="file-name">
+                            ${file.name}
+                        </div>
+                        <div class="file-size">
+                            ${size} MB
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    $("#selectedFiles").html(html);
   });
 
   $(document).on("click", ".delete-activity", function () {
