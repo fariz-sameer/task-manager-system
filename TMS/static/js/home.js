@@ -434,17 +434,16 @@ $(function () {
         return;
       }
     }
+    let formData = new FormData();
+    formData.append("message", message);
+    formData.append(
+      "csrfmiddlewaretoken",
+      $("input[name=csrfmiddlewaretoken]").first().val(),
+    );
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
   });
-
-  let formData = new FormData();
-  formData.append("message", message);
-  formData.append(
-    "csrfmiddlewaretoken",
-    $("input[name=csrfmiddlewaretoken]").first().val(),
-  );
-  for (let i = 0; i < files.length; i++) {
-    formData.append("files", files[i]);
-  }
 
   $(document).on("click", "#resetFilters", function (e) {
     const form = $("#filterForm");
