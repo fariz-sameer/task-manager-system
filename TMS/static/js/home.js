@@ -346,7 +346,13 @@ $(function () {
       ${buildActivityHtml(task)}
     </div>
   `);
+  }
 
+  function loadTaskDrawer(taskId) {
+    currentTask = taskId;
+
+    $("#drawerTitle").text("Loading...");
+    $("#drawerContent").html("<p>Loading task...</p>");
     $("#drawerFooter").html(`
 
       <h6>Progress Update</h6>
@@ -395,13 +401,6 @@ $(function () {
           <div id="selectedFiles"></div>
 
   `);
-  }
-
-  function loadTaskDrawer(taskId) {
-    currentTask = taskId;
-
-    $("#drawerTitle").text("Loading...");
-    $("#drawerContent").html("<p>Loading task...</p>");
 
     drawer.show();
 
