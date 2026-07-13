@@ -417,7 +417,19 @@ def add_task_comment(request, task_id):
                 {"success": False, "error": "Message or attachment required."},
                 status=400,
             )
+        MAX_TOTAL_SIZE = 10 * 1024 * 1024  # 10 MB
 
+        total_size = sum(file.size for file in request.FILES.getlist("files"))
+
+        if total_size > MAX_TOTAL_SIZE:
+
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "The total attachment size cannot exceed 10 MB.",
+                },
+                status=400,
+            )
         # Create the activity
         activity = TaskActivity.objects.create(
             task=task,
