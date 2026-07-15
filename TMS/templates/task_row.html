@@ -105,9 +105,15 @@
 
   <td>
     {% for person in task.assigned_to.all %}
-
     <span class="badge bg-secondary"> {{ person.username }} </span>
+    {% endfor %}
+  </td>
 
+  <td>
+    {% for person in task.followers.all %}
+        <span class="badge bg-secondary"> {{ person.username }} </span>
+    {% empty %}
+        —
     {% endfor %}
   </td>
 
@@ -119,7 +125,8 @@
       data-task="{{ task.id }}"
       data-title="{{ task.title }}"
       data-users="{% for person in task.assigned_to.all %}{{ person.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
-    >
+      data-followers="{% for person in task.followers.all %}{{ person.id }},{% endfor %}">
+
       Assign
     </button>
 
@@ -138,7 +145,7 @@
     {% if task.unread_count %}
 
     <span id="notification-{{ task.id }}" class="badge rounded-pill bg-danger">
-      {{ task.unread_count }} New
+      {{ task.unread_count }} 
     </span>
 
     {% endif %}

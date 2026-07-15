@@ -11,9 +11,17 @@ const statusClasses = {
   CANCELLED: "status-cancelled",
 };
 
+// $("#themeToggle").click(function(){
+
+//     $("body").toggleClass("dark-mode");
+
+// });
+
+
 let currentTask = null;
 let editingActivity = null;
 let editingButton = null;
+let editingRemark = null;
 
 function getCsrfToken() {
   return $("input[name=csrfmiddlewaretoken]").first().val();
@@ -130,6 +138,39 @@ $(function () {
     placeholder: "Search users",
     closeOnSelect: false,
   });
+  $("#userSelect").on("change", function () {
+
+      let assignees = $(this).val() || [];
+
+      let followers = $("#followerSelect").val() || [];
+
+      followers = followers.filter(id => !assignees.includes(id));
+
+      $("#followerSelect")
+          .val(followers)
+          .trigger("change.select2");
+
+  });
+
+
+  $("#followerSelect").select2({
+      dropdownParent: $("#assignModal"),
+      placeholder: "Select followers",
+      closeOnSelect: false
+  })
+    $("#followerSelect").on("change", function () {
+
+      let followers = $(this).val() || [];
+
+      let assignees = $("#userSelect").val() || [];
+
+      assignees = assignees.filter(id => !followers.includes(id));
+
+      $("#userSelect")
+          .val(assignees)
+          .trigger("change.select2");
+
+  });
 
   document.querySelectorAll(".status-dropdown").forEach(function (dropdown) {
     paintStatusDropdown(dropdown);
@@ -163,6 +204,7 @@ $(function () {
   $(document).on("click", ".assign-btn", function () {
     currentTask = $(this).data("task");
     const assignedUsers = $(this).data("users");
+    const followerUsers = $(this).data("followers");
 
     $("#assignForm").attr("action", "/assign/" + currentTask + "/");
     $("#userSelect").val(null).trigger("change");
@@ -170,6 +212,21 @@ $(function () {
     if (assignedUsers) {
       const ids = assignedUsers.toString().split(",");
       $("#userSelect").val(ids).trigger("change");
+    }
+
+    $("#followerSelect")
+        .val(null)
+        .trigger("change");
+
+    if(followerUsers){
+
+        let ids =
+            followerUsers.toString().split(",");
+
+        $("#followerSelect")
+            .val(ids)
+            .trigger("change");
+
     }
 
     new bootstrap.Modal(document.getElementById("assignModal")).show();
@@ -234,6 +291,8 @@ $(function () {
 
     let html = "";
 
+    let remarkHtml = "";
+
     task.activities.forEach(function (activity) {
       let attachments = "";
 
@@ -295,16 +354,94 @@ $(function () {
     return html;
   }
 
+  function buildRemarkHtml(task){
+
+    if(task.remarks.length === 0){
+
+        return `
+            <p class="text-muted">
+                No remarks yet.
+            </p>
+        `;
+
+    }
+
+    let html = "";
+
+    task.remarks.forEach(function(remark){
+
+          let buttons = "";
+
+            if (remark.can_edit) {
+
+                buttons += `
+                    <button
+                        class="btn btn-sm btn-outline-primary edit-remark"
+                        data-id="${remark.id}">
+                        Edit
+                    </button>
+                `;
+
+            }
+
+            if (remark.can_delete) {
+
+                buttons += `
+                    <button
+                        class="btn btn-sm btn-outline-danger delete-remark"
+                        data-id="${remark.id}">
+                        Delete
+                    </button>
+                `;
+
+            }
+
+          html += `
+
+              <div class="activity-item">
+
+                  <small>${remark.time}</small>
+
+                  <br>
+
+                  <strong>${remark.user}</strong>
+
+                  <p class="activity-message mt-2">
+
+                      ${remark.message}
+
+                  </p>
+
+                  ${buttons}
+
+              </div>
+
+          `;
+
+      });
+
+      return html;
+
+  }
+
   function renderTaskDrawer(task) {
     let users = "";
-
-    task.assignees.forEach(function (name) {
-      users += `
-      <span class="badge bg-primary me-1">
-        ${name}
-      </span>
-    `;
+      task.assignees.forEach(function (name) {
+        users += `
+          <span class="badge bg-primary me-1">
+            ${name}
+          </span>
+      `;
     });
+
+    let followers = "";
+      task.followers.forEach(function(name){
+          followers += `
+              <span class="badge bg-secondary me-1">
+                  ${name}
+              </span>
+          `;
+      });
 
     $("#drawerTitle").text(task.title);
 
@@ -335,16 +472,31 @@ $(function () {
     </div>
 
     <div class="drawer-section">
+        <h6>Followers</h6>
+        ${followers}
+    </div>
+
+    <div class="drawer-section">
       <h6>Description</h6>
       <p>${task.details}</p>
     </div>
 
-    <hr>
+    <hr class="drawer-hr">
 
-    <div class="drawer-section">
-      <h6>Activity</h6>
-      ${buildActivityHtml(task)}
-    </div>
+    <div class="drawer-columns">
+      <div class="activity-column">
+          <h6>
+          <i class="bi bi-clock-history"></i>
+          Activity</h6>
+          ${buildActivityHtml(task)}
+      </div>
+      <div class="remarks-column">
+          <h6>
+          <i class="bi bi-chat-dots"></i>
+          Follower Remarks</h6>
+          ${buildRemarkHtml(task)}
+      </div>
+  </div>
   `);
   }
 
@@ -353,96 +505,114 @@ $(function () {
 
     $("#drawerTitle").text("Loading...");
     $("#drawerContent").html("<p>Loading task...</p>");
-    $("#drawerFooter").html(`
-
-      <h6>Progress Update</h6>
-
-      <textarea
-        id="progressMessage"
-        class="form-control"
-        rows="4"
-        placeholder="Write your progress update...">
-      </textarea>
-
-      <button
-        class="btn btn-success mt-3"
-        id="postUpdate">
-        Post Update
-      </button>
-      <div class="upload-actions">
-          <label for="progressFiles" class="custom-upload">
-              <div class="upload-icon">
-                  <i class="bi bi-cloud-arrow-up-fill"></i>
-              </div>
-              <div class="upload-text">
-                  <h6>Upload Attachments</h6>
-                  <small>
-                      JPG • PNG • PDF • DOCX • XLSX • ZIP
-                      <br>
-                      <strong>Maximum 10 MB per file</strong>
-                  </small>
-              </div>
-          </label>
-          
-      </div>
-
-          <input
-              type="file"
-              id="progressFiles"
-              multiple
-              hidden>
-          <div id="selectedFiles" class="mt-3"></div>
-
-          <input
-              type="file"
-              id="progressFiles"
-              multiple
-              hidden>
-          <div id="selectedFiles"></div>
-
-  `);
-
     drawer.show();
+    
+    let footerHtml = "";
+    $.ajax({
 
-    $.get("/task/" + taskId + "/data/", function (task) {
+    url: "/task/" + taskId + "/data/",
+
+    type: "GET",
+
+    cache: false,
+
+    success:function(task){
+
+      if(task.is_follower){
+
+          footerHtml = `
+
+              <div class="drawer-section">
+
+                  <h6>
+
+                      Leave a Remark
+
+                  </h6>
+
+                  <textarea
+
+                      id="remarkMessage"
+
+                      class="form-control"
+
+                      rows="4"
+
+                      placeholder="Write your thoughts...">
+
+                  </textarea>
+
+                  <button
+
+                      class="btn btn-success mt-3"
+
+                      id="postRemark">
+
+                      Post Remark
+
+                  </button>
+
+              </div>
+
+          `;
+
+      }
+      else{
+
+          footerHtml = `
+
+              <h6>Progress Update</h6>
+
+                  <textarea
+                    id="progressMessage"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Write your progress update..."></textarea>
+
+                  <button
+                    class="btn btn-success mt-3"
+                    id="postUpdate">
+                    Post Update
+                  </button>
+                  <div class="upload-actions">
+                      <label for="progressFiles" class="custom-upload">
+                          <div class="upload-icon">
+                              <i class="bi bi-cloud-arrow-up-fill"></i>
+                          </div>
+                          <div class="upload-text">
+                              <h6>Upload Attachments</h6>
+                              <small>
+                                  JPG • PNG • PDF • DOCX • XLSX • ZIP
+                                  <br>
+                                  <strong>Maximum 10 MB per file</strong>
+                              </small>
+                          </div>
+                      </label>
+                      
+                  </div>
+
+                      <input
+                          type="file"
+                          id="progressFiles"
+                          multiple
+                          hidden>
+                      <div id="selectedFiles" class="mt-3"></div>
+
+          `;
+
+      }
+
+      $("#drawerFooter").html(footerHtml);
       renderTaskDrawer(task);
-    });
+      }
+
+  });
 
     $("#notification-" + taskId)
       .removeClass("bg-danger")
       .addClass("bg-success")
       .text("Seen");
   }
-
-  $(document).on("click", "#postUpdate", function () {
-    let message = $("#progressMessage").val();
-
-    if (message.trim() === "" && $("#progressFiles")[0].files.length === 0) {
-      return;
-    }
-
-    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-
-    let files = $("#progressFiles")[0].files;
-
-    // Validate every file BEFORE uploading
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].size > MAX_SIZE) {
-        alert(`"${files[i].name}" exceeds the 10 MB limit.`);
-
-        return;
-      }
-    }
-    let formData = new FormData();
-    formData.append("message", message);
-    formData.append(
-      "csrfmiddlewaretoken",
-      $("input[name=csrfmiddlewaretoken]").first().val(),
-    );
-    for (let i = 0; i < files.length; i++) {
-      formData.append("files", files[i]);
-    }
-  });
 
   $(document).on("click", "#resetFilters", function (e) {
     const form = $("#filterForm");
@@ -593,11 +763,32 @@ $(function () {
       data: formData,
       processData: false,
       contentType: false,
-      success: function () {
-        refreshCurrentTask();
-      },
+      success:function(){
+          loadTaskDrawer(currentTask);
+          refreshTaskTable();
+      }
     });
   });
+
+  $(document).on("click", "#postRemark", function(){
+        let message = $("#remarkMessage").val().trim();
+        if(message === ""){
+            return;
+        }
+        $.post(
+            "/task/" + currentTask + "/remark/",
+            {
+                message: message,
+                csrfmiddlewaretoken: getCsrfToken()
+            },
+            function(){
+                $("#remarkMessage").val("");
+
+                loadTaskDrawer(currentTask);
+            }
+        );
+    }
+);
 
   $(document).on("change", "#progressFiles", function () {
     const MAX_SIZE = 10 * 1024 * 1024;
@@ -649,10 +840,28 @@ $(function () {
     );
   });
 
+  $(document).on("click", ".delete-remark", function () {
+      if (!confirm("Delete this remark?")) {
+          return;
+      }
+      const id = $(this).data("id");  
+      $.post(
+          "/remark/" + id + "/delete/",
+          {
+              csrfmiddlewaretoken: getCsrfToken(),
+          },
+          function () {
+              refreshCurrentTask();
+          }
+      );
+  });
+
   $(document).on("click", ".edit-activity", function () {
+
+    editingActivity = null;
     editingActivity = $(this).data("id");
     editingButton = $(this);
-
+    
     const message = $(this)
       .closest(".activity-item")
       .find(".activity-message")
@@ -664,23 +873,59 @@ $(function () {
     new bootstrap.Modal(document.getElementById("editActivityModal")).show();
   });
 
+  $(document).on("click", ".edit-remark", function () {
+
+      editingRemark = null;
+      editingRemark = $(this).data("id");
+
+      const message = $(this)
+          .closest(".activity-item")
+          .find(".activity-message")
+          .text()
+          .trim();
+
+      $("#editActivityMessage").val(message);
+
+      new bootstrap.Modal(
+          document.getElementById("editActivityModal")
+      ).show();
+
+  });
+
   $(document).on("click", "#saveActivityEdit", function () {
-    const updated = $("#editActivityMessage").val();
+      const updated = $("#editActivityMessage").val();
+      if (editingRemark !== null) {
+          $.post(
+              "/remark/" + editingRemark + "/edit/",
+              {
+                  message: updated,
+                  csrfmiddlewaretoken: getCsrfToken(),
+              },
+              function () {
+                  bootstrap.Modal.getInstance(
+                      document.getElementById("editActivityModal")
+                  ).hide();
+                  editingRemark = null;
+                  refreshCurrentTask();
+              }
+          );
+          return;
+      }
 
-    $.post(
-      "/activity/" + editingActivity + "/edit/",
-      {
-        message: updated,
-        csrfmiddlewaretoken: getCsrfToken(),
-      },
-      function () {
-        bootstrap.Modal.getInstance(
-          document.getElementById("editActivityModal"),
-        ).hide();
-
-        refreshCurrentTask();
-      },
-    );
+      $.post(
+          "/activity/" + editingActivity + "/edit/",
+          {
+              message: updated,
+              csrfmiddlewaretoken: getCsrfToken(),
+          },
+          function () {
+              bootstrap.Modal.getInstance(
+                  document.getElementById("editActivityModal")
+              ).hide();
+              editingActivity = null;
+              refreshCurrentTask();
+          }
+      );
   });
 
   document.querySelectorAll(".auto-expand").forEach(function (textarea) {
@@ -694,3 +939,47 @@ $(function () {
     $("#filterPanel").toggleClass("show");
   });
 });
+
+const darkTheme = document.getElementById("dark-theme");
+const themeButton = document.getElementById("themeToggle");
+
+themeButton.addEventListener("click", function(){
+
+    darkTheme.disabled = !darkTheme.disabled;
+
+});
+
+$("#themeToggle").on("change", function(){
+
+    $("body").toggleClass("dark-mode");
+
+});
+
+$(function(){
+
+    const savedTheme = localStorage.getItem("theme");
+
+    if(savedTheme === "dark"){
+
+        $("body").addClass("dark-mode");
+
+        $("#themeToggle").prop("checked", true);
+
+    }
+
+    $("#themeToggle").on("change", function(){
+
+        $("body").toggleClass("dark-mode");
+
+        localStorage.setItem(
+
+            "theme",
+
+            this.checked ? "dark" : "light"
+
+        );
+
+    });
+
+});
+

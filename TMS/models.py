@@ -29,6 +29,7 @@ class Task(models.Model):
     assigned_to = models.ManyToManyField(
         User, blank=True, related_name="assigned_tasks"
     )
+    followers = models.ManyToManyField(User, blank=True, related_name="following_tasks")
     created_at = models.DateTimeField(auto_now_add=True)
     company_name = models.CharField(
         max_length=20, choices=Company.choices, default=Company.ARACO
@@ -78,3 +79,24 @@ class ActivityAttachment(models.Model):
     )
     file = models.FileField(upload_to="activity_attachments/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+class FollowerRemark(models.Model):
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="remarks")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    message = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+
+        ordering = ["-created_at"]
+
+    def __str__(self):
+
+        return f"{self.user.username}: {self.message[:40]}"

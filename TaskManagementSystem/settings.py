@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "TMS",
+    # 'django.contrib.sites',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +133,13 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
+
+# SITE_ID = 1
+
+# AUTHENTICATION_BACKENDS = [
+
+#     "django.contrib.auth.backends.ModelBackend",
+
+#     "allauth.account.auth_backends.AuthenticationBackend",
+
+# ]

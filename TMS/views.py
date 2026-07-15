@@ -6,11 +6,17 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from .models import Task, TaskActivity, TaskReadStatus, ActivityAttachment
-from .forms import SignUpForm
+from .models import (
+    Task,
+    TaskActivity,
+    TaskReadStatus,
+    ActivityAttachment,
+    FollowerRemark,
+)
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
+from .forms import SignUpForm
 
 ASSIGNEE_EDITABLE_STATUSES = {
     Task.Status.IN_PROGRESS,
@@ -38,7 +44,10 @@ def prepare_task(task, user):
             ).count()
 
     task.assignee_can_edit = (
-        user != task.user and task.status in ASSIGNEE_EDITABLE_STATUSES
+        user in task.assigned_to.all()
+        and user != task.user
+        and user not in task.followers.all()
+        and task.status in ASSIGNEE_EDITABLE_STATUSES
     )
 
     return task
@@ -55,9 +64,13 @@ def prepare_tasks(tasks, user):
 def home(request):
 
     tasks = (
-        Task.objects.prefetch_related("assigned_to")
-        .filter(Q(user=request.user) | Q(assigned_to=request.user))
+        Task.objects.filter(
+            Q(user=request.user)
+            | Q(assigned_to=request.user)
+            | Q(followers=request.user)
+        )
         .distinct()
+        .prefetch_related("assigned_to", "followers")
     )
 
     # ---------------- Filters ----------------
@@ -144,27 +157,20 @@ def add_task(request):
 
 
 @login_required
-# def assign_task(request, task_id):
-#     task = Task.objects.get(id=task_id, user=request.user)
-
-#     if request.method == "POST":
-
-#         user = User.objects.get(
-#             id=request.POST["assigned_to"])
-
-#         # task.assigned_to = user
-#         # task.save()
-#         task.assigned_to.set([user])
-
-
-#     return redirect("home")
 def assign_task(request, task_id):
     task = Task.objects.get(id=task_id, user=request.user)
     if request.method == "POST":
         selected_users = request.POST.getlist("assigned_to")
+        selected_followers = request.POST.getlist("followers")
+        selected_followers = [
+            follower
+            for follower in selected_followers
+            if follower not in selected_users
+        ]
         _ = list(task.assigned_to.values_list("username", flat=True))
         task.assigned_to.set(selected_users)
         task.assigned_to.add(request.user)
+        task.followers.set(selected_followers)
         new_users = list(task.assigned_to.values_list("username", flat=True))
 
         TaskActivity.objects.create(
@@ -178,39 +184,18 @@ def assign_task(request, task_id):
     return JsonResponse({"success": False}, status=400)
 
 
-# @login_required
-# def update_status(request, task_id):
-
-#     task = Task.objects.get(
-#         id=task_id,
-#         user=request.user
-#     )
-
-#     if request.method == "POST":
-
-#         old_display = task.get_status_display()
-
-#         new_status = request.POST["status"]
-
-#         task.status = new_status
-
-#         new_display = task.get_status_display()
-
-#         task.save()
-
-#         TaskActivity.objects.create(
-#             task=task,
-#             user=request.user,
-#             message=f"changed the status from '{old_display}' to '{new_display}'."
-#         )
-
-#     return redirect("home")
-
-
 @login_required
 def update_status(request, task_id):
     task = get_object_or_404(Task, id=task_id)
 
+    if request.user in task.followers.all():
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Followers cannot change the task status.",
+            },
+            status=403,
+        )
     # Only the owner or an assignee can update the status
     if request.user != task.user and request.user not in task.assigned_to.all():
         return JsonResponse(
@@ -308,13 +293,18 @@ def task_data(request, task_id):
     )
 
     # Only owner or assignees can view
-    if request.user != task.user and request.user not in task.assigned_to.all():
+    if (
+        request.user != task.user
+        and request.user not in task.assigned_to.all()
+        and request.user not in task.followers.all()
+    ):
         return JsonResponse({"error": "Permission denied"}, status=403)
 
     return JsonResponse(
         {
             "current_user": request.user.username,
             "is_owner": request.user == task.user,
+            "is_follower": request.user in task.followers.all(),
             "id": task.id,
             "title": task.title,
             "company": task.get_company_name_display(),
@@ -325,6 +315,7 @@ def task_data(request, task_id):
             "owner": task.user.username,
             "details": task.task_details,
             "assignees": [user.username for user in task.assigned_to.all()],
+            "followers": [user.username for user in task.followers.all()],
             "activities": [
                 {
                     "id": activity.id,
@@ -343,60 +334,22 @@ def task_data(request, task_id):
                 }
                 for activity in task.activities.all()
             ],
+            "remarks": [
+                {
+                    "id": remark.id,
+                    "user": remark.user.username,
+                    "message": remark.message,
+                    "time": remark.created_at.strftime("%d %b %Y %H:%M"),
+                    "owner": remark.user.username,
+                    "can_edit": request.user == remark.user,
+                    "can_delete": (
+                        request.user == remark.user or request.user == task.user
+                    ),
+                }
+                for remark in task.remarks.all()
+            ],
         }
     )
-
-
-# @login_required
-# def add_task_comment(request, task_id):
-
-#     task = get_object_or_404(Task, id=task_id)
-
-#     if (
-#         request.user != task.user
-#         and
-#         request.user not in task.assigned_to.all()
-#     ):
-#         return JsonResponse(
-#             {"success": False},
-#             status=403
-#         )
-
-#     if request.method == "POST":
-
-#         message = request.POST.get("message", "").strip()
-
-#         if message:
-
-#             TaskActivity.objects.create(
-
-#                 task=task,
-
-#                 user=request.user,
-
-#                 message=message,
-
-#                 activity_type=TaskActivity.ActivityType.COMMENT
-
-#             )
-#             for file in request.FILES.getlist("files"):
-
-#                 ActivityAttachment.objects.create(
-
-#                     activity=activity,
-
-#                     file=file
-
-#                 )
-
-#         return JsonResponse(
-#             {"success": True}
-#         )
-
-#     return JsonResponse(
-#         {"success": False},
-#         status=400
-#     )
 
 
 @login_required
@@ -479,8 +432,15 @@ def edit_activity(request, activity_id):
 @login_required
 def task_table_partial(request):
     tasks = (
-        Task.objects.prefetch_related("assigned_to")
-        .filter(Q(user=request.user) | Q(assigned_to=request.user))
+        Task.objects.prefetch_related(
+            "assigned_to",
+            "followers",
+        )
+        .filter(
+            Q(user=request.user)
+            | Q(assigned_to=request.user)
+            | Q(followers=request.user)
+        )
         .distinct()
     )
 
@@ -536,3 +496,57 @@ def task_table_partial(request):
             "Status": Task.Status,
         },
     )
+
+
+@login_required
+def add_follower_remark(request, task_id):
+
+    task = get_object_or_404(Task, id=task_id)
+
+    if request.user not in task.followers.all():
+
+        return JsonResponse({"success": False}, status=403)
+
+    if request.method == "POST":
+
+        message = request.POST.get("message", "").strip()
+
+        if not message:
+
+            return JsonResponse({"success": False}, status=400)
+
+        FollowerRemark.objects.create(task=task, user=request.user, message=message)
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False}, status=400)
+
+
+@login_required
+def edit_follower_remark(request, remark_id):
+
+    remark = get_object_or_404(FollowerRemark, id=remark_id)
+
+    if request.user != remark.user:
+        return JsonResponse({"success": False}, status=403)
+
+    message = request.POST.get("message", "").strip()
+
+    if message:
+        remark.message = message
+        remark.save()
+
+    return JsonResponse({"success": True})
+
+
+@login_required
+def delete_follower_remark(request, remark_id):
+
+    remark = get_object_or_404(FollowerRemark, id=remark_id)
+
+    if request.user != remark.user and request.user != remark.task.user:
+        return JsonResponse({"success": False}, status=403)
+
+    remark.delete()
+
+    return JsonResponse({"success": True})

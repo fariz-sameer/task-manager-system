@@ -66,15 +66,15 @@
         <hr>
 
         <p class="signup-text">
-
             Don't have an account?
-
-            <a href="{% url 'signup' %}">
+            <a
+                href="{% url 'signup' %}"
+                class="register-link">
 
                 Register
 
+                <i class="bi bi-arrow-right-short"></i>
             </a>
-
         </p>
 
     </div>
@@ -242,15 +242,29 @@ h1{
 
     font-weight:600;
 
-    background:#2D6A4F;
+    background:linear-gradient(
+        135deg,
+        #2D6A4F,
+        #40916C
+    );
 
     border:none;
+
+    transition: .25s ease;
+
+    box-shadow:0 4px 4px rgba(45,106,79,.35);
 
 }
 
 .btn-success:hover{
 
-    background:#40916C;
+    transform:translateY(-2px);
+
+    background:linear-gradient(
+        135deg,
+        #1B4332,
+        #2D6A4F
+    );
 
 }
 
@@ -279,8 +293,82 @@ hr{
 }
 
 .signup-text{
-    display: flex;
-    justify-content: center;
-    margin-top: 25px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-top:25px;
+
+    color:#666;
+
+    font-size:15px;
+
+}
+
+.register-link{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:3px;
+
+    padding:1px 14px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    color:white;
+
+    background:linear-gradient(
+        135deg,
+        #2D6A4F,
+        #40916C
+    );
+
+    transition:.25s ease;
+
+    box-shadow:0 4px 4px rgba(45,106,79,.25);
+
+    margin-left: 3px;
+
+}
+
+.register-link:hover{
+
+    background:linear-gradient(
+        135deg,
+        #1B4332,
+        #2D6A4F
+    );
+
+    color:white;
+
+    transform:translateY(-2px);
+
+    box-shadow:0 4px 4px rgba(45,106,79,.35);
+
+}
+
+.register-link i{
+
+    font-size:18px;
+
+    transition:.25s ease;
+
+}
+
+.register-link:hover i{
+
+    transform:translateX(4px);
+
 }
 </style>

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
 from . import views
@@ -60,6 +60,21 @@ urlpatterns = [
         "table/",
         views.task_table_partial,
         name="task_table_partial",
+    ),
+    path(
+        "task/<int:task_id>/remark/",
+        views.add_follower_remark,
+        name="add_follower_remark",
+    ),
+    path(
+        "remark/<int:remark_id>/edit/",
+        views.edit_follower_remark,
+        name="edit_follower_remark",
+    ),
+    path(
+        "remark/<int:remark_id>/delete/",
+        views.delete_follower_remark,
+        name="delete_follower_remark",
     ),
 ]
 

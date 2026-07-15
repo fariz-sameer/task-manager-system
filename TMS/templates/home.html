@@ -18,6 +18,8 @@
 
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 
+    <link rel="stylesheet" href="{% static 'css/homeDark.css' %}" id="dark-theme" disabled>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Electrolize&display=swap" rel="stylesheet">
@@ -26,23 +28,71 @@
     
 
 </head>
-<body>
+<body class="dark-mode">
     <h1>Task Management System</h1>
 
     {% if user.is_authenticated %}
+    <!-- <div>
         <button class="welcome-text">
             <i class="bi bi-person-fill"></i>
             {{ user.username }}
         </button>
+
+        <label class="theme-switch">
+
+            <input
+                type="checkbox"
+                id="themeToggle">
+
+            <span class="slider">
+
+                <i class="bi bi-sun-fill sun"></i>
+
+                <i class="bi bi-moon-stars-fill moon"></i>
+
+            </span>
+
+        </label>
 
         <form action="{% url 'logout' %}" method="post" class="logout-form">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">
                <i class="bi bi-power"></i> Log Out
             </button>
-
-            
         </form>
+    </div> -->
+
+    <div class="top-bar-left">
+
+        <button class="welcome-text">
+            <i class="bi bi-person-fill"></i>
+            {{ user.username }}
+        </button>
+
+        <label class="theme-switch">
+
+            <input
+                type="checkbox"
+                id="themeToggle">
+
+            <span class="slider">
+
+                <i class="bi bi-sun-fill sun"></i>
+
+                <i class="bi bi-moon-stars-fill moon"></i>
+
+            </span>
+
+        </label>
+
+    </div>
+
+    <form action="{% url 'logout' %}" method="post" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-power"></i> Log Out
+        </button>
+    </form>
     {% endif %}
 
         <div class="task-creator">
@@ -332,11 +382,14 @@
 
                         {% csrf_token %}
 
+                       
+
                         <select
                             id="userSelect"
                             name="assigned_to"
                             multiple
                             style="width:100%;">
+                        
 
                             {% for user in users %}
 
@@ -346,6 +399,25 @@
                                 {{ user.username }}
 
                             </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        
+
+                        <select
+                            id="followerSelect"
+                            name="followers"
+                            multiple>
+
+                            {% for user in users %}
+
+                                <option value="{{ user.id }}">
+
+                                    {{ user.username }}
+
+                                </option>
 
                             {% endfor %}
 
@@ -389,19 +461,13 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-
                     <h5 class="modal-title">
-
                         Confirm Assignment
-
                     </h5>
-
                 </div>
 
                 <div class="modal-body">
-
                     <p id="confirmAssignText"></p>
-
                 </div>
 
                 <div class="modal-footer">
