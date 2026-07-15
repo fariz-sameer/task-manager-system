@@ -362,80 +362,153 @@ function refreshCurrentTask() {
         if (task.is_follower) {
           footerHtml = `
 
-              <div class="drawer-section">
+            <div class="drawer-action-card">
 
-                  <h6>
+                <div class="drawer-action-header">
 
-                      Leave a Remark
+                    <div>
 
-                  </h6>
+                        <h6>
 
-                  <textarea
+                            <i class="bi bi-chat-dots-fill"></i>
 
-                      id="remarkMessage"
+                            Discussion
 
-                      class="form-control"
+                        </h6>
 
-                      rows="4"
+                        <small>
 
-                      placeholder="Write your thoughts...">
+                            Click to leave a remark
 
-                  </textarea>
+                        </small>
 
-                  <button
+                    </div>
 
-                      class="btn btn-success mt-3"
+                    <i class="bi bi-chevron-down action-arrow"></i>
 
-                      id="postRemark">
+                </div>
 
-                      Post Remark
+                <div class="drawer-action-body">
 
-                  </button>
+                    <textarea
+                        id="remarkMessage"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Write your thoughts..."></textarea>
 
-              </div>
+                    <button
+                        class="btn btn-success mt-3"
+                        id="postRemark">
 
-          `;
+                        <i class="bi bi-send-fill"></i>
+
+                        Post Remark
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
         } else {
           footerHtml = `
 
-              <h6>Progress Update</h6>
+            <div class="drawer-action-card">
 
-                  <textarea
-                    id="progressMessage"
-                    class="form-control"
-                    rows="4"
-                    placeholder="Write your progress update..."></textarea>
+                <div class="drawer-action-header">
 
-                  <button
-                    class="btn btn-success mt-3"
-                    id="postUpdate">
-                    Post Update
-                  </button>
-                  <div class="upload-actions">
-                      <label for="progressFiles" class="custom-upload">
-                          <div class="upload-icon">
-                              <i class="bi bi-cloud-arrow-up-fill"></i>
-                          </div>
-                          <div class="upload-text">
-                              <h6>Upload Attachments</h6>
-                              <small>
-                                  JPG • PNG • PDF • DOCX • XLSX • ZIP
-                                  <br>
-                                  <strong>Maximum 10 MB per file</strong>
-                              </small>
-                          </div>
-                      </label>
-                      
-                  </div>
+                    <div>
 
-                      <input
-                          type="file"
-                          id="progressFiles"
-                          multiple
-                          hidden>
-                      <div id="selectedFiles" class="mt-3"></div>
+                        <h6>
 
-          `;
+                            <i class="bi bi-pencil-square"></i>
+
+                            Progress Update
+
+                        </h6>
+
+                        <small>
+
+                            Click to write an update
+
+                        </small>
+
+                    </div>
+
+                    <i class="bi bi-chevron-down action-arrow"></i>
+
+                </div>
+
+                <div class="drawer-action-body">
+
+                    <textarea
+                        id="progressMessage"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Write your progress updates..."></textarea>
+
+                    <div class="upload-actions">
+
+                        <label for="progressFiles" class="custom-upload">
+
+                            <div class="upload-icon">
+
+                                <i class="bi bi-cloud-arrow-up-fill"></i>
+
+                            </div>
+
+                            <div class="upload-text">
+
+                                <h6>
+
+                                    Upload Attachments
+
+                                </h6>
+
+                                <small>
+
+                                    JPG • PNG • PDF • DOCX • XLSX • ZIP
+
+                                    <br>
+
+                                    <strong>Maximum 10 MB total</strong>
+
+                                </small>
+
+                            </div>
+
+                        </label>
+
+                        <button
+                            class="btn btn-success"
+                            id="postUpdate">
+
+                            <i class="bi bi-send-fill"></i>
+
+                            Post Update
+
+                        </button>
+
+                    </div>
+
+                    <input
+                        type="file"
+                        id="progressFiles"
+                        multiple
+                        hidden>
+
+                    <div
+                        id="selectedFiles"
+                        class="mt-3">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            `;
         }
 
         $("#drawerFooter").html(footerHtml);
@@ -448,6 +521,14 @@ function refreshCurrentTask() {
       .addClass("bg-success")
       .text("Seen");
   }
+
+$(document).on("click", ".drawer-action-header", function () {
+
+    $(this)
+        .closest(".drawer-action-card")
+        .toggleClass("open");
+
+});
 
 $(function () {
   $("#userSelect").select2({
