@@ -108,10 +108,6 @@ function buildDrawerFooter(task) {
 
                                 <small>
 
-                                    JPG • PNG • PDF • DOCX • XLSX • ZIP
-
-                                    <br>
-
                                     <strong>Maximum 10 MB total</strong>
 
                                 </small>
