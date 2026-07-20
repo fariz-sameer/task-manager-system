@@ -1,21 +1,34 @@
 <tr>
-  <td>
-    <a href="#" class="task-link" data-task="{{ task.id }}">
-      {% if task.status == Status.CANCELLED %}
-      <s>{{ task.title }}</s>
-      {% else %} {{ task.title }} {% endif %}
-    </a>
+  <td data-column="title">
+    <a 
+      href="#" 
+      class="task-link task-hover"
+      data-task="{{ task.id }}"
+      data-description="{{ task.task_details|escape }}">
+
+      {% if task.display_status == Status.CANCELLED %}
+
+          <s>{{ task.title }}</s>
+
+      {% else %}
+
+          {{ task.title }}
+
+      {% endif %}
+
+  </a>
+  <div id="taskPreviewTooltip"></div>
   </td>
 
-  <td>{{ task.get_company_name_display }}</td>
+  <td data-column="company">{{ task.get_company_name_display }}</td>
 
-  <td>
+  <td data-column="status">
     {% if request.user == task.user %}
 
     <div
       class="status-dropdown"
       data-task="{{ task.id }}"
-      data-status="{{ task.status }}"
+      data-status="{{ task.display_status }}"
     >
       <button type="button" class="status-button"></button>
 
@@ -63,7 +76,7 @@
     <div
       class="status-dropdown"
       data-task="{{ task.id }}"
-      data-status="{{ task.status }}"
+      data-status="{{ task.display_status }}"
     >
       <button type="button" class="status-button"></button>
 
@@ -92,24 +105,26 @@
 
     {% else %}
 
-    <div class="status-dropdown readonly" data-status="{{ task.status }}">
+    <div class="status-dropdown readonly" data-status="{{ task.display_status }}">
       <button type="button" class="status-button" disabled></button>
     </div>
 
     {% endif %}
   </td>
 
-  <td>{{ task.deadline|date:"d M Y" }}</td>
+  <td data-column="deadline">{{ task.deadline|date:"d M Y" }}</td>
 
-  <td>{{ task.user.username }}</td>
+  <td data-column="owner">
+    <span class="badge bg-success"> {{ task.user.username }}</span>
+  </td>
 
-  <td>
+  <td data-column="assignees">
     {% for person in task.assigned_to.all %}
-    <span class="badge bg-secondary"> {{ person.username }} </span>
+    <span class="badge bg-primary"> {{ person.username }} </span>
     {% endfor %}
   </td>
 
-  <td>
+  <td data-column="followers">
     {% for person in task.followers.all %}
         <span class="badge bg-secondary"> {{ person.username }} </span>
     {% empty %}
@@ -117,7 +132,7 @@
     {% endfor %}
   </td>
 
-  <td>
+  <td data-column="actions">
     {% if request.user == task.user %}
 
     <button
@@ -141,7 +156,7 @@
     {% endif %}
   </td>
 
-  <td>
+  <td data-column="updates">
     {% if task.unread_count %}
 
     <span id="notification-{{ task.id }}" class="badge rounded-pill bg-danger">
@@ -151,3 +166,4 @@
     {% endif %}
   </td>
 </tr>
+

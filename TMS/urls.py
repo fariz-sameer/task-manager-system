@@ -76,6 +76,11 @@ urlpatterns = [
         views.delete_follower_remark,
         name="delete_follower_remark",
     ),
+    path(
+        "task/<int:task_id>/status-distribution/",
+        views.task_status_distribution,
+        name="task_status_distribution",
+    ),
 ]
 
 if settings.DEBUG:

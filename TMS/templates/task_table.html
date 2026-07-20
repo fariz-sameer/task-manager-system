@@ -1,27 +1,29 @@
+
+
 <div id="taskTableWrapper">
-  <table class="table table-hover align-middle">
+  <table class="table table-hover align-middle" id="taskTable">
     <thead>
       <tr>
-        <th>Task</th>
+        <th data-column="title">Task</th>
 
-        <th>Company</th>
+        <th data-column="company">Company</th>
 
-        <th>Status</th>
+        <th data-column="status">Status</th>
 
-        <th>Deadline</th>
+        <th data-column="deadline">Deadline</th>
 
-        <th>Owner</th>
+        <th data-column="owner">Owner</th>
 
-        <th>Assigned To</th>
+        <th data-column="assignees">Assignees </th>
 
-        <th>Followers</th>
+        <th data-column="followers">Followers</th>
 
-        <th>Actions</th>
+        <th data-column="actions">Actions</th>
 
-        <th>Updates</th>
+        <th data-column="updates">Updates</th>
       </tr>
     </thead>
-
+    
     <tbody>
       {% for task in tasks %} {% include "task_row.html" %} {% endfor %}
     </tbody>

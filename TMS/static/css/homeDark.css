@@ -1,254 +1,1468 @@
-body.dark-mode{
+/* ==========================================================
+   GLOBAL DARK THEME
+   ========================================================== */
 
-    background:linear-gradient(
-        135deg,
-        #0D0D0D,
-        #151515,
-        #202020
-    );
+body{
+    background:
+        radial-gradient(circle at top,#1b2a41 0%,#0f172a 40%,#0b1120 100%);
+    color:#F8FAFC;
+}
 
-    color:#F5F5F5;
+/* Scrollbar */
+
+::-webkit-scrollbar{
+    width:10px;
+}
+
+::-webkit-scrollbar-track{
+    background:#111827;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#374151;
+    border-radius:100px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#4B5563;
+}
+
+
+/* ==========================================================
+   TITLE
+   ========================================================== */
+
+h1{
+
+    color:#F8FAFC;
+
+    text-shadow:
+        0 0 12px rgba(34,197,94,.45),
+        0 0 25px rgba(34,197,94,.18);
 
 }
 
-body.dark-mode h1{
 
-    color:#FFFFFF;
+/* ==========================================================
+   WELCOME BAR
+   ========================================================== */
 
-    animation:glowDark 2s infinite;
+.welcome-text{
 
-}
+    background:
+        linear-gradient(
+            135deg,
+            #166534,
+            #14532D
+        ) !important;
 
-@keyframes glowDark{
-
-    0%{
-
-        text-shadow:
-            0 0 5px #FFFFFF,
-            0 0 12px #9A9A9A;
-
-    }
-
-    50%{
-
-        text-shadow:
-            0 0 18px #FFFFFF,
-            0 0 35px #E5E5E5;
-
-    }
-
-    100%{
-
-        text-shadow:
-            0 0 5px #FFFFFF,
-            0 0 12px #9A9A9A;
-
-    }
-
-}
-
-body.dark-mode .welcome-text{
-
-    background:linear-gradient(
-        135deg,
-        #3A3A3A,
-        #1A1A1A
-    ) !important;
-
-    border:2px solid #606060;
-
-}
-
-body.dark-mode .task-creator{
-
-    background:linear-gradient(
-        135deg,
-        #2A2A2A,
-        #1A1A1A,
-        #2A2A2A
-    ) !important;
-
-    border:1px solid #4A4A4A;
-
-}
-
-body.dark-mode .table thead th{
-
-    background:linear-gradient(
-        135deg,
-        #303030,
-        #181818
-    ) !important;
-
-    border-color:#5A5A5A;
-
-}
-
-body.dark-mode .table tbody td{
-
-    background:linear-gradient(
-        135deg,
-        #202020,
-        #2A2A2A
-    ) !important;
+    border:1px solid #22C55E;
 
     color:white;
-
-}
-
-body.dark-mode .task-link{
-
-    background:#2A2A2A;
-
-    color:white;
-
-}
-
-body.dark-mode .filter-form{
-
-    color:white;
-
-}
-
-body.dark-mode .offcanvas{
-
-    background:#171717;
-
-    color:white;
-
-}
-
-body.dark-mode .offcanvas-header{
-
-    background:#242424;
-
-    box-shadow:0 4px 12px rgba(0,0,0,.45);
-
-}
-
-body.dark-mode #drawerFooter{
-
-    background:#202020;
-
-    border:2px solid #4A4A4A;
-
-}
-
-body.dark-mode .drawer-section h6{
-
-    color:#FFFFFF;
-
-}
-
-body.dark-mode .activity-item{
-
-    background:#232323;
-
-    border:2px solid #555555;
-
-    color:white;
-
-    box-shadow:0 10px 20px rgba(0,0,0,.45);
-
-}
-
-body.dark-mode #progressMessage{
-
-    background:#242424;
-
-    color:white;
-
-    border:2px solid #4A4A4A;
-
-}
-
-body.dark-mode #progressMessage::placeholder{
-
-    color:#8A8A8A;
-
-}
-
-body.dark-mode #progressMessage:focus{
-
-    border-color:#8A8A8A;
 
     box-shadow:
-
-        0 0 0 4px rgba(255,255,255,.08);
-
-}
-
-body.dark-mode .custom-upload{
-
-    background:#242424;
-
-    border:2px dashed #7A7A7A;
+        0 10px 25px rgba(34,197,94,.20);
 
 }
 
-body.dark-mode .custom-upload:hover{
+.welcome-text:hover{
 
-    background:#2D2D2D;
-
-}
-
-body.dark-mode .upload-icon{
-
-    background:linear-gradient(
-        135deg,
-        #707070,
-        #2E2E2E
-    );
+    background:
+        linear-gradient(
+            135deg,
+            #15803D,
+            #166534
+        ) !important;
 
 }
 
-body.dark-mode .upload-text h6{
+
+/* ==========================================================
+   LOGOUT BUTTON
+   ========================================================== */
+
+.logout-form .btn-danger{
+
+    box-shadow:
+        0 10px 20px rgba(239,68,68,.25);
+
+}
+
+
+/* ==========================================================
+   FILTER BUTTONS
+   ========================================================== */
+
+#filterToggle,
+#columnToggleBtn{
+
+    background:
+        linear-gradient(
+            135deg,
+            #1E293B,
+            #0F172A
+        );
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+}
+
+#filterToggle:hover,
+#columnToggleBtn:hover{
+
+    background:
+        linear-gradient(
+            135deg,
+            #334155,
+            #1E293B
+        );
+
+}
+
+
+/* ==========================================================
+   TASK CREATOR
+   ========================================================== */
+
+.task-creator{
+
+    background:
+        linear-gradient(
+            145deg,
+            #16202D,
+            #111827
+        ) !important;
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.45);
+
+}
+
+.task-creator:hover{
+
+    background:
+        linear-gradient(
+            145deg,
+            #1E293B,
+            #16202D
+        ) !important;
+
+}
+
+
+/* ==========================================================
+   INPUTS
+   ========================================================== */
+
+.form-control,
+.form-select{
+
+    background:#111827;
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+}
+
+.form-control::placeholder{
+
+    color:#94A3B8;
+
+}
+
+.form-control:focus,
+.form-select:focus{
+
+    background:#111827;
+
+    color:white;
+
+    border-color:#22C55E;
+
+    box-shadow:
+        0 0 0 4px rgba(34,197,94,.15);
+
+}
+
+
+/* ==========================================================
+   FILTER PANEL
+   ========================================================== */
+
+#filterPanel{
 
     color:white;
 
 }
 
-body.dark-mode .upload-text p{
+.form-label{
 
-    color:#C2C2C2;
-
-}
-
-body.dark-mode .upload-text small{
-
-    color:#8C8C8C;
+    color:#CBD5E1;
 
 }
 
-body.dark-mode .selected-file{
 
-    background:#282828;
+/* ==========================================================
+   TABLE
+   ========================================================== */
 
-    border:1px solid #4B4B4B;
+.table{
+
+    color:#F8FAFC;
 
 }
 
-body.dark-mode .file-name{
+.table thead th{
+
+    background:
+        linear-gradient(
+            135deg,
+            #14532D,
+            #166534
+        ) !important;
+
+    border-color:#1F2937;
+
+    color:white !important;
+
+}
+
+.table tbody td{
+
+    background:
+        linear-gradient(
+            145deg,
+            #16202D,
+            #111827
+        ) !important;
+
+    color:#E2E8F0;
+
+    border:1px solid #293548;
+
+}
+
+
+/* Alternate rows */
+
+.table tbody tr:nth-child(even) td{
+
+    background:
+        linear-gradient(
+            145deg,
+            #1B2737,
+            #16202D
+        ) !important;
+
+}
+
+
+/* Hover */
+
+.table tbody tr:hover td{
+
+    background:#1F2D40 !important;
+
+}
+
+
+/* ==========================================================
+   TASK TITLE
+   ========================================================== */
+
+.task-link{
+
+    background:#1F2937;
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+}
+
+.task-link:hover{
+
+    background:#263446;
+
+    color:#22C55E;
+
+}
+
+
+/* ==========================================================
+   MUTED TEXT
+   ========================================================== */
+
+.text-muted{
+
+    background:#16202D;
+
+    color:#CBD5E1 !important;
+
+    border:1px solid #334155;
+
+}
+
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
+
+.assign-btn{
+
+    box-shadow:
+        0 10px 20px rgba(59,130,246,.25);
+
+}
+
+.delete-btn{
+
+    box-shadow:
+        0 10px 20px rgba(239,68,68,.25);
+
+}
+
+#applyFilters{
+
+    box-shadow:
+        0 10px 20px rgba(59,130,246,.20);
+
+}
+
+#resetFilters{
+
+    box-shadow:
+        0 10px 20px rgba(239,68,68,.20);
+
+}
+
+
+/* ==========================================================
+   SELECT2
+   ========================================================== */
+
+.select2-container--default
+.select2-selection--multiple{
+
+    background:#111827;
+
+    border:1px solid #334155;
+
+}
+
+.select2-selection__choice{
+
+    background:#166534 !important;
+
+    color:white !important;
+
+    border:none !important;
+
+}
+
+.select2-dropdown{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+}
+
+.select2-results__option{
+
+    color:#F8FAFC;
+
+}
+
+.select2-results__option--highlighted{
+
+    background:#166534 !important;
+
+}
+
+
+/* ==========================================================
+   COLUMN MENU
+   ========================================================== */
+
+#columnMenu{
+
+    background:#16202D;
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+}
+
+#columnMenu label{
+
+    color:#E2E8F0;
+
+}
+
+/*==================================================
+    OFFCANVAS
+==================================================*/
+
+.offcanvas{
+
+    background:#0F172A;
+
+    color:#F8FAFC;
+
+}
+
+.offcanvas-header{
+
+    background:
+        linear-gradient(
+            135deg,
+            #166534,
+            #14532D
+        ) !important;
+
+    color:white;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.45);
+
+}
+
+.offcanvas-body{
+
+    background:#0F172A;
+
+}
+
+#drawerContent{
+
+    background:#0F172A;
+
+}
+
+#drawerTitle{
+
+    color:#F8FAFC;
+
+}
+
+.drawer-section h6{
+
+    color:#4c8e65;
+
+}
+
+.drawer-section p{
+
+    color:#CBD5E1;
+
+}
+
+.drawer-section hr{
+
+    border-color:#334155;
+
+}
+
+
+/*==================================================
+    DRAWER FOOTER
+==================================================*/
+
+#drawerFooter{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    box-shadow:
+        0 -8px 25px rgba(0,0,0,.35);
+
+}
+
+#drawerFooter h6{
+
+    color:#22C55E;
+
+    text-shadow:none;
+
+}
+
+
+/*==================================================
+    DRAWER ACTION CARDS
+==================================================*/
+
+.drawer-action-card{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.35);
+
+}
+
+.drawer-action-header{
+
+    background:
+        linear-gradient(
+            135deg,
+            #1F2937,
+            #16202D
+        );
+
+}
+
+.drawer-action-header:hover{
+
+    background:#243447;
+
+}
+
+.drawer-action-header h6{
+
+    color:#F8FAFC;
+
+}
+
+.drawer-action-header small{
+
+    color:#94A3B8;
+
+}
+
+.drawer-action-body{
+
+    background:#16202D;
+
+}
+
+.action-arrow{
+
+    color:#CBD5E1;
+
+}
+
+
+/*==================================================
+    ACTIVITY
+==================================================*/
+
+.activity-item{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    color:#E2E8F0;
+
+    box-shadow:
+        0 15px 30px rgba(0,0,0,.30);
+
+}
+
+.activity-item:hover{
+
+    background:#1F2937;
+
+    transform:translateY(-3px);
+
+}
+
+.activity-item small{
+
+    color:#94A3B8;
+
+}
+
+.activity-message{
+
+    color:#F8FAFC;
+
+}
+
+
+/*==================================================
+    REMARKS
+==================================================*/
+
+.remark-item{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+}
+
+.remarks-column h6,
+.activity-column h6{
+    font-weight:700;
+    
+    color:#22C55E;
+
+    margin-bottom:25px;
+
+}
+
+.remarks-column h6 i,
+.activity-column h6 i{
+    color: #22C55E;
+    margin-right: 7px;  
+    font-size: 17px;
+}
+
+/*==================================================
+    TEXTAREAS
+==================================================*/
+
+#progressMessage,
+#remarkMessage{
+
+    background:#111827;
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+}
+
+#progressMessage::placeholder,
+#remarkMessage::placeholder{
+
+    color:#94A3B8;
+
+}
+
+#progressMessage:focus,
+#remarkMessage:focus{
+
+    background:#111827;
+
+    border-color:#22C55E;
+
+    box-shadow:
+        0 0 0 4px rgba(34,197,94,.15);
+
+}
+
+
+/*==================================================
+    UPLOAD
+==================================================*/
+
+.custom-upload{
+
+    background:#16202D;
+
+    border:2px dashed #22C55E;
+
+}
+
+.custom-upload:hover{
+
+    background:#1F2937;
+
+}
+
+.upload-text h6{
+
+    color:#F8FAFC;
+
+}
+
+.upload-text p{
+
+    color:#CBD5E1;
+
+}
+
+.upload-text small{
+
+    color:#94A3B8;
+
+}
+
+.upload-icon{
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563EB,
+            #22C55E
+        );
+
+}
+
+.selected-file{
+
+    background:#1E293B;
+
+    border:1px solid #334155;
+
+}
+
+.file-name{
+
+    color:#F8FAFC;
+
+}
+
+.file-size{
+
+    color:#CBD5E1;
+
+}
+
+.file-left i{
+
+    color:#22C55E;
+
+}
+
+
+/*==================================================
+    STATUS CHART
+==================================================*/
+
+.status-chart-card{
+
+    background:
+        linear-gradient(
+            145deg,
+            #16202D,
+            #111827
+        );
+
+    border:1px solid #334155;
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.45);
+
+}
+
+.status-chart-header h6{
+
+    color:#a9c2db;
+
+}
+
+.status-chart-header span{
+
+    color:#94A3B8;
+
+}
+
+.chart-wrapper{
+
+    background:transparent;
+
+}
+
+
+/*==================================================
+    MODAL
+==================================================*/
+
+.modal-content{
+
+    background:#16202D;
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+}
+
+.modal-header{
+
+    background:
+        linear-gradient(
+            135deg,
+            #166534,
+            #14532D
+        ) !important;
+
+    color:white;
+
+    border-bottom:1px solid #334155;
+
+}
+
+.modal-footer{
+
+    border-top:1px solid #334155;
+
+}
+
+.modal-body{
+
+    color:#E2E8F0;
+
+}
+
+
+/*==================================================
+    BADGES
+==================================================*/
+
+.badge{
+
+    box-shadow:
+        0 4px 10px rgba(0,0,0,.35);
+
+}
+
+
+/*==================================================
+    TOOLTIP
+==================================================*/
+
+#taskPreviewTooltip{
+
+    background:
+        linear-gradient(
+            145deg,
+            #16202D,
+            #111827
+        );
+
+    color:#F8FAFC;
+
+    border:1px solid #334155;
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.55);
+
+}
+
+#taskPreviewTooltip strong{
+
+    color:#22C55E;
+
+}
+
+#taskPreviewTooltip hr{
+
+    background:
+        linear-gradient(
+            to right,
+            #22C55E,
+            transparent
+        );
+
+}
+
+#taskPreviewTooltip::before{
+
+    border-bottom-color:#16202D;
+
+}
+
+#taskPreviewTooltip::after{
+
+    background:
+        linear-gradient(
+            180deg,
+            #22C55E,
+            #15803D
+        );
+
+}
+
+
+/*==================================================
+    HORIZONTAL RULE
+==================================================*/
+
+hr.drawer-hr{
+
+    border:2px dashed #334155;
+
+}
+
+/*==================================================
+    SELECT2
+==================================================*/
+
+.select2-search__field{
+
+    color:#F8FAFC !important;
+    background:#111827 !important;
+
+}
+
+.select2-search__field::placeholder{
+
+    color:#94A3B8;
+
+}
+
+.select2-selection__rendered{
+
+    color:#F8FAFC !important;
+
+}
+
+.select2-selection--single{
+
+    background:#111827 !important;
+    border:1px solid #334155 !important;
+
+}
+
+.select2-selection__placeholder{
+
+    color:#94A3B8 !important;
+
+}
+
+.select2-results{
+
+    background:#16202D;
+
+}
+
+.select2-results__option{
+
+    transition:.2s;
+
+}
+
+.select2-results__option:hover{
+
+    background:#1E293B !important;
+
+}
+
+
+/*==================================================
+    STATUS DROPDOWN (DARK MODE)
+==================================================*/
+
+.status-menu {
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    margin-top: 4px;
+    top: calc(100% + 6px);
+
+    padding-right: 2px;
+
+    background: #16202D;
+
+    border: 1px solid #334155;
+
+    border-radius: 16px;
+
+    box-shadow: 0 10px 28px rgba(0,0,0,.55);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    max-height: 280px;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(-6px) scale(0.97);
+
+    pointer-events: none;
+
+    transition:
+        opacity .16s ease,
+        transform .16s ease,
+        visibility .16s;
+
+    z-index: 1000;
+
+    scrollbar-width: thin;
+    scrollbar-color: #475569 transparent;
+}
+
+
+/* Open */
+
+.status-dropdown.open .status-menu {
+
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(0) scale(1);
+
+}
+
+
+/* Open upward */
+
+.status-dropdown.open-up .status-menu {
+
+    transform: translateY(6px) scale(.97);
+
+}
+
+.status-dropdown.open.open-up .status-menu {
+
+    transform: translateY(0) scale(1);
+
+}
+
+
+/* Scrollbar */
+
+.status-menu::-webkit-scrollbar {
+
+    width: 10px;
+
+}
+
+.status-menu::-webkit-scrollbar-track {
+
+    background: transparent;
+
+    margin: 10px 0;
+
+}
+
+.status-menu::-webkit-scrollbar-thumb {
+
+    background: #475569;
+
+    border-radius: 999px;
+
+    border: 2px solid transparent;
+
+    background-clip: padding-box;
+
+}
+
+.status-menu::-webkit-scrollbar-thumb:hover {
+
+    background: #64748B;
+
+    background-clip: padding-box;
+
+}
+
+
+/* Items */
+
+.status-item {
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 50px;
+
+    padding: 10px 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        filter .15s ease,
+        background-color .15s ease;
+
+    border-bottom: 1px solid rgba(255,255,255,.05);
+
+}
+
+.status-item:last-child {
+
+    border-bottom: none;
+
+}
+
+
+/* Keep your existing status colors */
+
+.status-item:hover {
+
+    filter: brightness(.96);
+
+}
+
+
+/* Selected checkmark */
+
+.status-item.active::after {
+
+    font-family: "bootstrap-icons";
+
+    content: "\F26E";
+
+    position: absolute;
+
+    right: 14px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    font-size: 16px;
+
+    color: currentColor;
+
+    pointer-events: none;
+
+}
+
+
+/* Readonly */
+
+.status-dropdown.readonly .status-button {
+
+    cursor: default;
+
+}
+
+.status-dropdown.readonly .status-button:hover {
+
+    transform: none;
+
+    box-shadow: none;
+
+}
+
+.status-dropdown.readonly .status-button::after {
+
+    display: none;
+
+}
+
+.status-button:hover{
+
+    transform:none !important;
+
+}
+
+/*==================================================
+    COLUMN MENU
+==================================================*/
+
+#columnMenu{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+}
+
+#columnMenu label{
+
+    color:#CBD5E1;
+
+    transition:.25s;
+
+}
+
+#columnMenu label:hover{
+
+    color:#22C55E;
+
+}
+
+
+/*==================================================
+    CHECKBOXES
+==================================================*/
+
+input[type="checkbox"]{
+
+    accent-color:#22C55E;
+
+}
+
+
+/*==================================================
+    LINKS
+==================================================*/
+
+a{
+
+    color:#60A5FA;
+
+}
+
+a:hover{
+
+    color:#93C5FD;
+
+}
+
+
+/*==================================================
+    CARDS
+==================================================*/
+
+.card{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+}
+
+.card-header{
+
+    background:#1E293B;
+
+    border-bottom:1px solid #334155;
+
+}
+
+.card-footer{
+
+    background:#16202D;
+
+    border-top:1px solid #334155;
+
+}
+
+
+/*==================================================
+    ALERTS
+==================================================*/
+
+.alert{
+
+    border:none;
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.25);
+
+}
+
+
+/*==================================================
+    DROPDOWNS
+==================================================*/
+
+.dropdown-menu{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+}
+
+.dropdown-item{
+
+    color:#CBD5E1;
+
+}
+
+.dropdown-item:hover{
+
+    background:#1F2937;
+
+    color:#F8FAFC;
+
+}
+
+
+/*==================================================
+    PAGINATION
+==================================================*/
+
+.page-link{
+
+    background:#16202D;
+
+    border:1px solid #334155;
+
+    color:#F8FAFC;
+
+}
+
+.page-link:hover{
+
+    background:#1F2937;
+
+}
+
+
+/*==================================================
+    BUTTONS
+==================================================*/
+
+.btn{
+
+    transition:
+        .25s ease,
+        transform .2s;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.btn:active{
+
+    transform:scale(.97);
+
+}
+
+
+/*==================================================
+    INPUT GROUPS
+==================================================*/
+
+.input-group-text{
+
+    background:#1F2937;
+
+    border:1px solid #334155;
+
+    color:#CBD5E1;
+
+}
+
+
+/*==================================================
+    TABLE ANIMATION
+==================================================*/
+
+.table tbody tr{
+
+    transition:.2s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#1F2D40 !important;
+
+}
+
+
+/*==================================================
+    OFFCANVAS SCROLLBAR
+==================================================*/
+
+.offcanvas-body::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+.offcanvas-body::-webkit-scrollbar-track{
+
+    background:#111827;
+
+}
+
+.offcanvas-body::-webkit-scrollbar-thumb{
+
+    background:#374151;
+
+    border-radius:100px;
+
+}
+
+
+/*==================================================
+    GLOW EFFECTS
+==================================================*/
+
+.task-creator,
+.status-chart-card,
+.drawer-action-card,
+.activity-item,
+.modal-content{
+
+    transition:
+        .3s ease,
+        box-shadow .3s ease;
+
+}
+
+.task-creator:hover,
+.status-chart-card:hover,
+.drawer-action-card:hover,
+.activity-item:hover{
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.50),
+        0 0 20px rgba(34,197,94,.08);
+
+}
+
+
+/*==================================================
+    NICE SELECTION
+==================================================*/
+
+::selection{
+
+    background:#22C55E;
 
     color:white;
 
 }
 
-body.dark-mode .file-size{
 
-    color:#BDBDBD;
+/*==================================================
+    FOCUS RING
+==================================================*/
+
+*:focus-visible{
+
+    outline:none;
+
+    box-shadow:
+        0 0 0 3px rgba(34,197,94,.25);
 
 }
 
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select{
 
-    background:#242424;
+/*==================================================
+    DISABLED
+==================================================*/
 
-    color:white;
+button:disabled,
+.btn:disabled{
 
-    border-color:#505050;
+    opacity:.55;
+
+}
+
+
+/*==================================================
+    FOOTER
+==================================================*/
+
+footer{
+
+    color:#94A3B8;
 
 }
 

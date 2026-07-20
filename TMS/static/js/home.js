@@ -1,9 +1,3 @@
-// $("#themeToggle").click(function(){
-
-//     $("body").toggleClass("dark-mode");
-
-// });
-
 let currentTask = null;
 let editingActivity = null;
 let editingRemark = null;
@@ -123,4 +117,108 @@ $(function () {
   $("#filterToggle").click(function () {
     $("#filterPanel").toggleClass("show");
   });
+});
+
+let tooltipTimer;
+
+
+$(document).on(
+    "mouseenter",
+    ".task-hover",
+    function(e){
+
+        let element = $(this);
+
+        tooltipTimer = setTimeout(function(){
+
+            let description =
+                element.data("description");
+
+
+            if(!description){
+
+                description = "No description provided.";
+
+            }
+
+
+            $("#taskPreviewTooltip")
+                .html(`
+                    <strong>
+                        ${element.text()}
+                    </strong>
+
+                    <hr>
+
+                    ${description}
+                `)
+                .css({
+
+                    top:
+                    e.pageY + 20,
+
+                    left:
+                    e.pageX + 20
+
+                })
+                .fadeIn(200);
+
+
+        },500); // delay before showing
+
+    }
+);
+
+
+$(document).on(
+    "mousemove",
+    ".task-hover",
+    function(e){
+
+        $("#taskPreviewTooltip")
+            .css({
+
+                top:e.pageY + 20,
+
+                left:e.pageX + 20
+
+            });
+
+    }
+);
+
+
+$(document).on(
+    "mouseleave",
+    ".task-hover",
+    function(){
+
+        clearTimeout(tooltipTimer);
+
+        $("#taskPreviewTooltip")
+            .fadeOut(150);
+
+    }
+);
+
+$("#columnToggleBtn").click(function(){
+
+    $("#columnMenu").toggle();
+
+});
+
+
+$(document).on(
+"change",
+"#columnMenu input",
+function(){
+
+    let column = $(this).data("column");
+
+    let visible = $(this).is(":checked");
+
+
+    $(`[data-column="${column}"]`)
+        .toggle(visible);
+
 });

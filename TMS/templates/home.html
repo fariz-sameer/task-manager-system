@@ -32,35 +32,6 @@
     <h1>Task Management System</h1>
 
     {% if user.is_authenticated %}
-    <!-- <div>
-        <button class="welcome-text">
-            <i class="bi bi-person-fill"></i>
-            {{ user.username }}
-        </button>
-
-        <label class="theme-switch">
-
-            <input
-                type="checkbox"
-                id="themeToggle">
-
-            <span class="slider">
-
-                <i class="bi bi-sun-fill sun"></i>
-
-                <i class="bi bi-moon-stars-fill moon"></i>
-
-            </span>
-
-        </label>
-
-        <form action="{% url 'logout' %}" method="post" class="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">
-               <i class="bi bi-power"></i> Log Out
-            </button>
-        </form>
-    </div> -->
 
     <div class="top-bar-left">
 
@@ -137,216 +108,257 @@
 
 
                                         <!-- . . . . . . CODE FOR FILTER FORM . . . . . . -->
+        <div class="table-filters">
+                <div  class="text-center mb-3">
 
-        <div  class="text-center mb-3">
+                    <button
+                        type="button"
+                        id="filterToggle"
+                        class="btn btn-dark">
 
-            <button
-                type="button"
-                id="filterToggle"
-                class="btn btn-dark">
+                        <i class="bi bi-funnel-fill"></i>
+                        Filters
 
-                <i class="bi bi-funnel-fill"></i>
-                Filters
+                    </button>
 
-            </button>
+                </div>
 
-        </div>
+                <div id="filterPanel">
 
-        <div id="filterPanel">
+                    <div class="filter-form">
 
-            <div class="filter-form">
+                        <form id="filterForm" method="GET" class="row g-3 mb-4">    
 
-                <form id="filterForm" method="GET" class="row g-3 mb-4">    
+                            <div class="col-md-2">
 
-                    <div class="col-md-2">
+                                <label class="form-label">
+                                    Status
+                                </label>
 
-                        <label class="form-label">
-                            Status
-                        </label>
+                                <select
+                                    name="status"
+                                    class="form-select">
 
-                        <select
-                            name="status"
-                            class="form-select">
+                                    <option value="">
+                                        All Statuses
+                                    </option>
 
-                            <option value="">
-                                All Statuses
-                            </option>
+                                    {% for value,label in Status.choices %}
 
-                            {% for value,label in Status.choices %}
+                                        <option
+                                            value="{{ value }}"
+                                            {% if status_filter == value %}selected{% endif %}>
 
-                                <option
-                                    value="{{ value }}"
-                                    {% if status_filter == value %}selected{% endif %}>
+                                            {{ label }}
 
-                                    {{ label }}
+                                        </option>
 
-                                </option>
+                                    {% endfor %}
 
-                            {% endfor %}
+                                </select>
 
-                        </select>
+                            </div>
 
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Owner
+                                </label>
+
+                                <select
+                                    name="owner"
+                                    class="form-select">
+
+                                    <option value="">
+                                        All Owners
+                                    </option>
+
+                                    {% for user in users %}
+
+                                        <option
+                                            value="{{ user.id }}"
+                                            {% if owner_filter == user.id|stringformat:"s" %}selected{% endif %}>
+
+                                            {{ user.username }}
+
+                                        </option>
+
+                                    {% endfor %}
+
+                                    <option
+                                        value="{{ request.user.id }}"
+                                        {% if owner_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
+
+                                        {{ request.user.username }}
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Assignees
+                                </label>
+
+                                <select
+                                    name="assignee"
+                                    class="form-select">
+
+                                    <option value="">
+                                        All Assignees
+                                    </option>
+
+                                    {% for user in users %}
+
+                                        <option
+                                            value="{{ user.id }}"
+                                            {% if assignee_filter == user.id|stringformat:"s" %}selected{% endif %}>
+
+                                            {{ user.username }}
+
+                                        </option>
+
+                                    {% endfor %}
+
+                                    <option
+                                        value="{{ request.user.id }}"
+                                        {% if assignee_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
+
+                                        {{ request.user.username }}
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Deadline
+                                </label>
+
+                                <select
+                                    name="deadline"
+                                    class="form-select">
+
+                                    <option value="">
+                                        All Deadlines
+                                    </option>
+
+                                    <option value="OVERDUE"
+                                        {% if deadline_filter == "OVERDUE" %}selected{% endif %}>
+                                        Overdue
+                                    </option>
+
+                                    <option value="TODAY"
+                                        {% if deadline_filter == "TODAY" %}selected{% endif %}>
+                                        Today
+                                    </option>
+
+                                    <option value="TOMORROW"
+                                        {% if deadline_filter == "TOMORROW" %}selected{% endif %}>
+                                        Tomorrow
+                                    </option>
+
+                                    <option value="THIS_WEEK"
+                                        {% if deadline_filter == "THIS_WEEK" %}selected{% endif %}>
+                                        This Week
+                                    </option>
+
+                                    <option value="THIS_MONTH"
+                                        {% if deadline_filter == "THIS_MONTH" %}selected{% endif %}>
+                                        This Month
+                                    </option>
+
+                                    <option value="NEXT_MONTH"
+                                        {% if deadline_filter == "NEXT_MONTH" %}selected{% endif %}>
+                                        Next Month
+                                    </option>
+
+                                    <option value="THIS_YEAR"
+                                        {% if deadline_filter == "THIS_YEAR" %}selected{% endif %}>
+                                        This Year
+                                    </option>
+
+                                    <option value="NO_DEADLINE"
+                                        {% if deadline_filter == "NO_DEADLINE" %}selected{% endif %}>
+                                        No Deadline
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-4 d-flex align-items-end">
+
+                                <button
+                                    class="btn btn-primary me-3"
+                                    id="applyFilters"
+                                    type="submit">
+
+                                    Apply Filters
+
+                                </button>
+
+                                <button
+                                    type="button"
+                                    id="resetFilters"
+                                    class="btn btn-secondary">
+                                    Reset
+                                </button>
+
+                            </div>
+
+                        </form>
                     </div>
-
-                    <div class="col-md-2">
-
-                        <label class="form-label">
-                            Owner
-                        </label>
-
-                        <select
-                            name="owner"
-                            class="form-select">
-
-                            <option value="">
-                                All Owners
-                            </option>
-
-                            {% for user in users %}
-
-                                <option
-                                    value="{{ user.id }}"
-                                    {% if owner_filter == user.id|stringformat:"s" %}selected{% endif %}>
-
-                                    {{ user.username }}
-
-                                </option>
-
-                            {% endfor %}
-
-                            <option
-                                value="{{ request.user.id }}"
-                                {% if owner_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
-
-                                {{ request.user.username }}
-
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-2">
-
-                        <label class="form-label">
-                            Assigned To
-                        </label>
-
-                        <select
-                            name="assignee"
-                            class="form-select">
-
-                            <option value="">
-                                All Assignees
-                            </option>
-
-                            {% for user in users %}
-
-                                <option
-                                    value="{{ user.id }}"
-                                    {% if assignee_filter == user.id|stringformat:"s" %}selected{% endif %}>
-
-                                    {{ user.username }}
-
-                                </option>
-
-                            {% endfor %}
-
-                            <option
-                                value="{{ request.user.id }}"
-                                {% if assignee_filter == request.user.id|stringformat:"s" %}selected{% endif %}>
-
-                                {{ request.user.username }}
-
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-2">
-
-                        <label class="form-label">
-                            Deadline
-                        </label>
-
-                        <select
-                            name="deadline"
-                            class="form-select">
-
-                            <option value="">
-                                All Deadlines
-                            </option>
-
-                            <option value="OVERDUE"
-                                {% if deadline_filter == "OVERDUE" %}selected{% endif %}>
-                                Overdue
-                            </option>
-
-                            <option value="TODAY"
-                                {% if deadline_filter == "TODAY" %}selected{% endif %}>
-                                Today
-                            </option>
-
-                            <option value="TOMORROW"
-                                {% if deadline_filter == "TOMORROW" %}selected{% endif %}>
-                                Tomorrow
-                            </option>
-
-                            <option value="THIS_WEEK"
-                                {% if deadline_filter == "THIS_WEEK" %}selected{% endif %}>
-                                This Week
-                            </option>
-
-                            <option value="THIS_MONTH"
-                                {% if deadline_filter == "THIS_MONTH" %}selected{% endif %}>
-                                This Month
-                            </option>
-
-                            <option value="NEXT_MONTH"
-                                {% if deadline_filter == "NEXT_MONTH" %}selected{% endif %}>
-                                Next Month
-                            </option>
-
-                            <option value="THIS_YEAR"
-                                {% if deadline_filter == "THIS_YEAR" %}selected{% endif %}>
-                                This Year
-                            </option>
-
-                            <option value="NO_DEADLINE"
-                                {% if deadline_filter == "NO_DEADLINE" %}selected{% endif %}>
-                                No Deadline
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-4 d-flex align-items-end">
-
-                        <button
-                            class="btn btn-primary me-3"
-                            type="submit">
-
-                            Apply Filters
-
-                        </button>
-
-                        <button
-                            type="button"
-                            id="resetFilters"
-                            class="btn btn-secondary">
-                            Reset
-                        </button>
-
-                    </div>
-
-                </form>
-            </div>
-        </div>
+                </div>
 
 
-                                            <!-- . . . . . . CODE FOR TABLE . . . . . .  -->
+                                                    <!-- . . . . . . CODE FOR TABLE . . . . . .  -->
+            <div class="column-filter">
+
+                <button id="columnToggleBtn">
+                    <i class="bi bi-layout-text-sidebar-reverse"></i>
+                    Columns
+                </button>
+
+
+                <div id="columnMenu">
+
+                    <label>
+                    <input type="checkbox" checked data-column="title">
+                    Task
+                    </label>
+
+
+                    <label>
+                    <input type="checkbox" checked data-column="company">
+                    Company
+                    </label>
+
+                    <label>
+                    <input type="checkbox" checked data-column="status">
+                    Status
+                    </label>
+
+                    <label>
+                    <input type="checkbox" checked data-column="deadline">
+                    Deadline
+                    </label>
+                    
+                    <label>
+                    <input type="checkbox" checked data-column="owner">
+                    Owner
+                    </label>
+
+                </div>
+
+            </div>    
+        </div>                                 
 
         {% include 'task_table.html' %}
 
@@ -355,6 +367,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="{% static 'js/drawer.js' %}"></script>
 

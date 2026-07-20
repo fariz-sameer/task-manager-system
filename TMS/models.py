@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 
 
 class Task(models.Model):
@@ -100,3 +101,24 @@ class FollowerRemark(models.Model):
     def __str__(self):
 
         return f"{self.user.username}: {self.message[:40]}"
+
+
+class UserTaskStatus(models.Model):
+
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name="user_statuses"
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    status = models.CharField(
+        max_length=20, choices=Task.Status.choices, default=Task.Status.NEW
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("task", "user")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.task.title} ({self.status})"

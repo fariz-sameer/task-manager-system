@@ -9,17 +9,12 @@ function buildDrawerFooter(task) {
                     <div>
 
                         <h6>
-
                             <i class="bi bi-chat-dots-fill"></i>
-
                             Discussion
-
                         </h6>
 
                         <small>
-
                             Click to leave a remark
-
                         </small>
 
                     </div>
@@ -39,11 +34,8 @@ function buildDrawerFooter(task) {
                     <button
                         class="btn btn-success mt-3"
                         id="postRemark">
-
                         <i class="bi bi-send-fill"></i>
-
                         Post Remark
-
                     </button>
 
                 </div>
@@ -61,17 +53,12 @@ function buildDrawerFooter(task) {
                     <div>
 
                         <h6>
-
                             <i class="bi bi-pencil-square"></i>
-
                             Progress Update
-
                         </h6>
 
                         <small>
-
                             Click to write an update
-
                         </small>
 
                     </div>
@@ -90,41 +77,34 @@ function buildDrawerFooter(task) {
 
                     <div class="upload-actions">
 
+                        <button
+                            class="btn btn-success"
+                            id="postUpdate">
+                            <i class="bi bi-send-fill"></i>
+                            Post Update
+                        </button>
+
                         <label for="progressFiles" class="custom-upload">
 
                             <div class="upload-icon">
-
                                 <i class="bi bi-cloud-arrow-up-fill"></i>
-
                             </div>
 
                             <div class="upload-text">
 
                                 <h6>
-
                                     Upload Attachments
-
                                 </h6>
 
                                 <small>
-
                                     <strong>Maximum 10 MB total</strong>
-
                                 </small>
 
                             </div>
 
                         </label>
 
-                        <button
-                            class="btn btn-success"
-                            id="postUpdate">
-
-                            <i class="bi bi-send-fill"></i>
-
-                            Post Update
-
-                        </button>
+                        
 
                     </div>
 
@@ -179,7 +159,8 @@ function buildActivityHtml(task) {
         <button
           class="btn btn-sm btn-outline-primary edit-activity"
           data-id="${activity.id}">
-          Edit
+          <i class="bi bi-pencil-fill"></i>
+          
         </button>
       `;
     }
@@ -189,7 +170,8 @@ function buildActivityHtml(task) {
         <button
           class="btn btn-sm btn-outline-danger delete-activity"
           data-id="${activity.id}">
-          Delete
+          <i class="bi bi-trash-fill"></i>
+          
         </button>
       `;
     }
@@ -239,7 +221,7 @@ function buildRemarkHtml(task) {
                     <button
                         class="btn btn-sm btn-outline-primary edit-remark"
                         data-id="${remark.id}">
-                        Edit
+                        <i class="bi bi-pencil-fill"></i>
                     </button>
                 `;
     }
@@ -249,7 +231,7 @@ function buildRemarkHtml(task) {
                     <button
                         class="btn btn-sm btn-outline-danger delete-remark"
                         data-id="${remark.id}">
-                        Delete
+                        <i class="bi bi-trash-fill"></i>
                     </button>
                 `;
     }
@@ -281,6 +263,9 @@ function buildRemarkHtml(task) {
 }
 
 function renderTaskDrawer(task) {
+
+  loadStatusChart(task.id);
+
   let users = "";
   task.assignees.forEach(function (name) {
     users += `
@@ -299,12 +284,30 @@ function renderTaskDrawer(task) {
           `;
   });
 
+  let statusLabel = "";
+
+  if (task.is_assignee && !task.is_owner) {
+
+      statusLabel = "Your Status";
+
+  } else {
+
+      statusLabel = "Overall Task Status";
+
+  }
+
   $("#drawerTitle").text(task.title);
 
   $("#drawerContent").html(`
     <div class="drawer-section">
       <h6>Status</h6>
-      <p>${task.status}</p>
+      <small class="text-muted">
+        ${task.status_context}
+      </small>
+
+      <p class="mt-2">
+          ${task.status}
+      </p>
     </div>
 
     <div class="drawer-section">
@@ -319,7 +322,9 @@ function renderTaskDrawer(task) {
 
     <div class="drawer-section">
       <h6>Owner</h6>
-      <p>${task.owner}</p>
+      <span class="badge bg-success me-1"
+        <p>${task.owner}</p>
+      </span>
     </div>
 
     <div class="drawer-section">
@@ -338,6 +343,31 @@ function renderTaskDrawer(task) {
     </div>
 
     <hr class="drawer-hr">
+
+    <div class="status-chart-card">
+
+      <div class="status-chart-header">
+
+          <h6>
+              <i class="bi bi-pie-chart-fill"></i>
+              Status Distribution
+          </h6>
+
+      </div>
+
+      <div class="status-chart-body">
+
+          <div class="chart-wrapper">
+              <canvas id="statusChart"></canvas>
+          </div>
+
+          <div id="assigneeStatusList" class="assignee-status-list">
+
+          </div>
+
+      </div>
+
+  </div>
 
     <div class="drawer-columns">
       <div class="activity-column">
@@ -401,4 +431,184 @@ function refreshAfter(successCallback = null) {
       successCallback();
     }
   });
+}
+
+let statusChart = null;
+
+
+function loadStatusChart(taskId){
+
+
+    $.ajax({
+
+        url:
+        "/task/" + taskId + "/status-distribution/",
+
+
+        type:"GET",
+
+
+        success:function(data){
+
+
+            let ctx =
+            document.getElementById(
+                "statusChart"
+            );
+
+
+            if(statusChart){
+
+                statusChart.destroy();
+
+            }
+
+
+            statusChart = new Chart(ctx, {
+
+
+                type:"doughnut",
+
+
+                data:{
+
+
+                    labels:data.labels,
+
+
+                    datasets:[{
+
+                      data:data.values,
+
+                        borderRadius:3,
+
+                        spacing:2,
+
+                        hoverOffset:18,
+
+                        borderColor:"#fcfafa",
+
+                        borderWidth:1,
+
+
+                      backgroundColor:data.labels.map(function(status){
+
+
+                          let colors = {
+
+
+                              "New":"#c4f9cc",
+
+                              "Urgent":"#ff3b30",
+
+                              "In Progress":"#ffc107",
+
+                              "Pending":"#2196f3",
+
+                              "For Discussion":"#ff9800",
+
+                              "Not Ready":"#e4e4e4",
+
+                              "Finished":"#9c27b0",
+
+                              "Completed":"#28a745",
+
+                              "Closed To Reopen":"#343a40",
+
+                              "Cancelled":"#6c757d"
+
+
+                          };
+
+
+                          return colors[status] || "#40916c";
+
+
+                      })
+
+                  }]
+
+                },
+
+
+                options:{
+
+
+                  responsive:true,
+
+                  maintainAspectRatio:false,
+
+                  animation:{
+                    animateRotate:true,
+                    animateScale:true,
+                    duration:1400,
+                    easing:"easeOutQuart"
+                },
+
+                  cutout:"65%",
+
+
+                  plugins:{
+
+
+                      legend:{
+                        position:"right",
+
+                        labels:{
+                            padding:30,
+
+                            usePointStyle:true,
+
+                            pointStyle:"circle",
+
+                            boxWidth:12,
+
+                            boxHeight:12,
+
+                            font:{
+                                size:13,
+                                weight:"600"
+                            }
+                        }
+                    },
+
+
+                      tooltip:{
+                        backgroundColor:"#1b4332",
+
+                        titleColor:"#fff",
+
+                        bodyColor:"#fff",
+
+                        padding:14,
+
+                        cornerRadius:14,
+
+                        displayColors:true,
+
+                        titleFont:{
+                            size:15,
+                            weight:"bold"
+                        },
+
+                        bodyFont:{
+                            size:13
+                        }
+                    }
+
+
+                  }
+
+
+              }
+
+
+            });
+
+
+        }
+
+    });
+
+
 }

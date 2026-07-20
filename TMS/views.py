@@ -12,6 +12,7 @@ from .models import (
     TaskReadStatus,
     ActivityAttachment,
     FollowerRemark,
+    UserTaskStatus,
 )
 from django.http import JsonResponse
 from django.utils import timezone
@@ -19,6 +20,7 @@ from datetime import timedelta
 from .forms import SignUpForm
 
 ASSIGNEE_EDITABLE_STATUSES = {
+    Task.Status.NEW,
     Task.Status.IN_PROGRESS,
     Task.Status.PENDING,
     Task.Status.FOR_DISCUSSION,
@@ -26,8 +28,15 @@ ASSIGNEE_EDITABLE_STATUSES = {
     Task.Status.FINISHED,
 }
 
+LOCKED_STATUSES = [
+    Task.Status.COMPLETED,
+    Task.Status.CLOSED_TO_REOPEN,
+    Task.Status.CANCELLED,
+]
+
 
 def prepare_task(task, user):
+
     latest_activity = task.activities.order_by("-created_at").first()
 
     task.unread_count = 0
@@ -47,13 +56,42 @@ def prepare_task(task, user):
         user in task.assigned_to.all()
         and user != task.user
         and user not in task.followers.all()
-        and task.status in ASSIGNEE_EDITABLE_STATUSES
+        and task.status not in LOCKED_STATUSES
     )
+
+    # -------------------------------
+    # Determine visible status
+    # -------------------------------
+
+    if task.status in LOCKED_STATUSES:
+
+        # Completed / Closed / Cancelled
+        # everyone sees the owner's status
+
+        task.display_status = task.status
+
+    elif user == task.user or user in task.followers.all():
+
+        # Owner and followers see overall status
+
+        task.display_status = task.status
+
+    else:
+
+        # Assignees see their personal status
+
+        user_status = UserTaskStatus.objects.filter(task=task, user=user).first()
+
+        task.display_status = user_status.status if user_status else task.status
 
     return task
 
 
+# ADD THIS BACK
+
+
 def prepare_tasks(tasks, user):
+
     for task in tasks:
         prepare_task(task, user)
 
@@ -79,8 +117,11 @@ def home(request):
     owner_filter = request.GET.get("owner")
     assignee_filter = request.GET.get("assignee")
     deadline_filter = request.GET.get("deadline")
+    # if status_filter:
+    #     tasks = tasks.filter(status=status_filter)
     if status_filter:
-        tasks = tasks.filter(status=status_filter)
+
+        tasks = [task for task in tasks if task.display_status == status_filter]
     if owner_filter:
         tasks = tasks.filter(user__id=owner_filter)
     if assignee_filter:
@@ -149,6 +190,12 @@ def add_task(request):
     )
     task.assigned_to.add(request.user)
 
+    UserTaskStatus.objects.create(
+        task=task,
+        user=request.user,
+        status=Task.Status.NEW,
+    )
+
     TaskActivity.objects.create(
         task=task, user=request.user, message="created the task."
     )
@@ -158,26 +205,69 @@ def add_task(request):
 
 @login_required
 def assign_task(request, task_id):
+
     task = Task.objects.get(id=task_id, user=request.user)
+
     if request.method == "POST":
+
+        # Get current values BEFORE updating
+        old_assignees = set(task.assigned_to.values_list("id", flat=True))
+        old_assignees.add(request.user.id)
+
+        old_followers = set(task.followers.values_list("id", flat=True))
+
         selected_users = request.POST.getlist("assigned_to")
+
         selected_followers = request.POST.getlist("followers")
+
+        # Prevent same person being both
         selected_followers = [
             follower
             for follower in selected_followers
             if follower not in selected_users
         ]
-        _ = list(task.assigned_to.values_list("username", flat=True))
-        task.assigned_to.set(selected_users)
-        task.assigned_to.add(request.user)
-        task.followers.set(selected_followers)
-        new_users = list(task.assigned_to.values_list("username", flat=True))
 
-        TaskActivity.objects.create(
-            task=task,
-            user=request.user,
-            message=f"updated assignees to: {', '.join(new_users)}.",
-        )
+        # Convert to sets for comparison
+        new_assignees = set(map(int, selected_users))
+        new_assignees.add(request.user.id)
+
+        new_followers = set(map(int, selected_followers))
+
+        # Update database
+        task.assigned_to.set(selected_users)
+
+        # Always keep owner as assignee
+        task.assigned_to.add(request.user)
+
+        for user in task.assigned_to.all():
+
+            UserTaskStatus.objects.get_or_create(
+                task=task, user=user, defaults={"status": Task.Status.NEW}
+            )
+
+        task.followers.set(selected_followers)
+
+        # Only create activity if assignees changed
+        if old_assignees != new_assignees:
+
+            usernames = list(task.assigned_to.values_list("username", flat=True))
+
+            TaskActivity.objects.create(
+                task=task,
+                user=request.user,
+                message=f"updated assignees to: {', '.join(usernames)}.",
+            )
+
+        # Only create activity if followers changed
+        if old_followers != new_followers:
+
+            usernames = list(task.followers.values_list("username", flat=True))
+
+            TaskActivity.objects.create(
+                task=task,
+                user=request.user,
+                message=f"updated followers to: {', '.join(usernames)}.",
+            )
 
         return JsonResponse({"success": True})
 
@@ -187,6 +277,15 @@ def assign_task(request, task_id):
 @login_required
 def update_status(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+
+    if task.status in LOCKED_STATUSES and request.user != task.user:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "This task is locked. Only the owner can change the status.",
+            },
+            status=403,
+        )
 
     if request.user in task.followers.all():
         return JsonResponse(
@@ -217,7 +316,6 @@ def update_status(request, task_id):
 
     # Statuses only the owner can set
     owner_only_statuses = [
-        Task.Status.NEW,
         Task.Status.URGENT,
         Task.Status.COMPLETED,
         Task.Status.CLOSED_TO_REOPEN,
@@ -231,18 +329,51 @@ def update_status(request, task_id):
             status=403,
         )
 
-    old_display = task.get_status_display()
-    task.status = new_status
-    task.save()
-    new_display = task.get_status_display()
+    # ---------------- OWNER ----------------
 
-    if old_display != new_display:
-        TaskActivity.objects.create(
-            task=task,
-            user=request.user,
-            message=f"changed the status from '{old_display}' to '{new_display}'.",
+    if request.user == task.user:
+
+        old_display = task.get_status_display()
+
+        task.status = new_status
+        task.save()
+
+        UserTaskStatus.objects.update_or_create(
+            task=task, user=request.user, defaults={"status": new_status}
         )
 
+        new_display = task.get_status_display()
+
+        if old_display != new_display:
+
+            TaskActivity.objects.create(
+                task=task,
+                user=request.user,
+                message=f"changed the overall task status from '{old_display}' to '{new_display}'.",
+            )
+
+    # ---------------- ASSIGNEE ----------------
+
+    else:
+
+        user_status, _ = UserTaskStatus.objects.get_or_create(
+            task=task, user=request.user, defaults={"status": Task.Status.NEW}
+        )
+
+        old_display = user_status.get_status_display()
+
+        user_status.status = new_status
+        user_status.save()
+
+        new_display = user_status.get_status_display()
+
+        if old_display != new_display:
+
+            TaskActivity.objects.create(
+                task=task,
+                user=request.user,
+                message=f"changed their status from '{old_display}' to '{new_display}'.",
+            )
     return JsonResponse({"success": True})
 
 
@@ -299,11 +430,45 @@ def task_data(request, task_id):
         and request.user not in task.followers.all()
     ):
         return JsonResponse({"error": "Permission denied"}, status=403)
+    # Determine status visible to current user
+
+    if task.status in LOCKED_STATUSES:
+
+        # Completed / Closed / Cancelled overrides personal statuses
+
+        visible_status = task.status
+        visible_status_display = task.get_status_display()
+        status_context = "Overall Task Status"
+
+    elif request.user == task.user or request.user in task.followers.all():
+
+        visible_status = task.status
+        visible_status_display = task.get_status_display()
+        status_context = "Overall Task Status"
+
+    else:
+
+        user_status = UserTaskStatus.objects.filter(
+            task=task, user=request.user
+        ).first()
+
+        if user_status:
+
+            visible_status = user_status.status
+            visible_status_display = user_status.get_status_display()
+            status_context = "Your Status"
+
+        else:
+
+            visible_status = task.status
+            visible_status_display = task.get_status_display()
+            status_context = "Overall Task Status"
 
     return JsonResponse(
         {
             "current_user": request.user.username,
             "is_owner": request.user == task.user,
+            "is_assignee": request.user in task.assigned_to.all(),
             "is_follower": request.user in task.followers.all(),
             "id": task.id,
             "title": task.title,
@@ -311,7 +476,9 @@ def task_data(request, task_id):
             "deadline": (
                 task.deadline.strftime("%d %b %Y") if task.deadline else "No deadline"
             ),
-            "status": task.get_status_display(),
+            "status": visible_status_display,
+            "status_value": visible_status,
+            "status_context": status_context,
             "owner": task.user.username,
             "details": task.task_details,
             "assignees": [user.username for user in task.assigned_to.all()],
@@ -455,8 +622,8 @@ def task_table_partial(request):
     owner_filter = request.GET.get("owner")
     assignee_filter = request.GET.get("assignee")
     deadline_filter = request.GET.get("deadline")
-    if status_filter:
-        tasks = tasks.filter(status=status_filter)
+    # if status_filter:
+    #     tasks = tasks.filter(status=status_filter)
     if owner_filter:
         tasks = tasks.filter(user__id=owner_filter)
     if assignee_filter:
@@ -486,7 +653,14 @@ def task_table_partial(request):
             tasks = tasks.filter(deadline__year=next_year, deadline__month=next_month)
 
     tasks = tasks.order_by("-created_at")
+
+    tasks = list(tasks)
+
     prepare_tasks(tasks, request.user)
+
+    if status_filter:
+
+        tasks = [task for task in tasks if task.display_status == status_filter]
 
     return render(
         request,
@@ -550,3 +724,59 @@ def delete_follower_remark(request, remark_id):
     remark.delete()
 
     return JsonResponse({"success": True})
+
+
+@login_required
+def task_status_distribution(request, task_id):
+
+    task = get_object_or_404(Task, id=task_id)
+
+    # Permission check
+    if (
+        request.user != task.user
+        and request.user not in task.assigned_to.all()
+        and request.user not in task.followers.all()
+    ):
+        return JsonResponse({"error": "Permission denied"}, status=403)
+
+    # ---------------------------------
+    # Locked statuses
+    # ---------------------------------
+
+    if task.status in LOCKED_STATUSES:
+
+        return JsonResponse(
+            {
+                "labels": [task.get_status_display()],
+                "values": [task.assigned_to.count()],
+            }
+        )
+
+    # ---------------------------------
+    # Normal status distribution
+    # ---------------------------------
+
+    status_counts = {}
+
+    user_statuses = UserTaskStatus.objects.filter(
+        task=task, user__in=task.assigned_to.all()
+    )
+
+    for user_status in user_statuses:
+
+        status_name = user_status.get_status_display()
+
+        if status_name in status_counts:
+
+            status_counts[status_name] += 1
+
+        else:
+
+            status_counts[status_name] = 1
+
+    return JsonResponse(
+        {
+            "labels": list(status_counts.keys()),
+            "values": list(status_counts.values()),
+        }
+    )
