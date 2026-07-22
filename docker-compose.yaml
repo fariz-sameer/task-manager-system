@@ -1,0 +1,53 @@
+services:
+  db:
+    container_name: taskmanager-db
+    image: postgres:18
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: taskmanager
+      POSTGRES_USER: taskmanager
+      POSTGRES_PASSWORD: fariz
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskmanager -d taskmanager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    container_name: taskmanager-web
+    build: .
+
+    restart: unless-stopped
+
+    command: >
+      sh -c "
+        uv run python manage.py migrate &&
+        uv run python manage.py runserver 0.0.0.0:8000
+      "
+
+    volumes:
+      - .:/app
+      - uv-cache:/root/.cache/uv
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: taskmanager-postgres-data
+  uv-cache:

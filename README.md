@@ -28,6 +28,44 @@ in the project URL configuration.
 - `templates/` - shared HTML templates
 - `static/` - static assets such as CSS
 
+## Running With Docker
+
+The repository includes a `docker-compose.yaml` file that starts Postgres and
+the Django web app.
+
+1. Make sure Docker Desktop is running.
+2. From the repository root, start the stack:
+
+```powershell
+docker compose up --build
+```
+
+The web container runs database migrations automatically and then starts the
+development server at <http://localhost:8000>.
+
+To stop the containers, run:
+
+```powershell
+docker compose down
+```
+
+## Running With Tilt
+
+Tilt uses the same compose file and adds small shortcuts for common Django
+tasks.
+
+1. Install Tilt and make sure Docker is running.
+2. From the repository root, start Tilt:
+
+```powershell
+tilt up
+```
+
+3. Open the Tilt UI at <http://localhost:10350>.
+
+The app is still served on <http://localhost:8000>. In the Tilt UI, you can
+also run the built-in buttons for `Make Migrations` and `Collect Static`.
+
 ## For Contributors
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, `uv` installation,

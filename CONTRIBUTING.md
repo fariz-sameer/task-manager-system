@@ -42,6 +42,48 @@ uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
 
+## Run With Docker
+
+The Docker setup starts two services:
+
+- `db` for PostgreSQL
+- `web` for the Django application
+
+Start the stack from the repository root:
+
+```powershell
+docker compose up --build
+```
+
+The web container applies migrations and then runs the Django development
+server on port 8000. Once it is up, open <http://localhost:8000>.
+
+Stop everything with:
+
+```powershell
+docker compose down
+```
+
+## Run With Tilt
+
+Tilt reads the same `docker-compose.yaml` file, so it launches the same
+services while giving you a browser-based control panel.
+
+```powershell
+tilt up
+```
+
+Tilt serves its UI on <http://localhost:10350>. From there, you can use the
+`Make Migrations` and `Collect Static` buttons, which execute inside the `web`
+container.
+
+If you prefer to run the same commands manually inside the container, use:
+
+```powershell
+docker compose exec -T web uv run python manage.py makemigrations
+docker compose exec -T web uv run python manage.py collectstatic --noinput
+```
+
 ## Pre-Commit Hooks
 
 This project uses two pre-commit hooks:
