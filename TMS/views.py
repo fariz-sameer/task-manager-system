@@ -13,11 +13,20 @@ from .models import (
     ActivityAttachment,
     FollowerRemark,
     UserTaskStatus,
+    ExecutiveDigest,
 )
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from .forms import SignUpForm
+from .models import Task, TaskActivity
+
+from .ai import (
+    summarize_activities,
+    executive_daily_digest,
+)
+
+from collections import defaultdict
 
 ASSIGNEE_EDITABLE_STATUSES = {
     Task.Status.NEW,
@@ -153,6 +162,9 @@ def home(request):
     tasks = tasks.order_by("-created_at")
     users = User.objects.exclude(id=request.user.id)
     tasks = prepare_tasks(tasks, request.user)
+
+    latest_digest = ExecutiveDigest.objects.filter(user=request.user).first()
+
     return render(
         request,
         "home.html",
@@ -165,6 +177,7 @@ def home(request):
             "owner_filter": owner_filter,
             "assignee_filter": assignee_filter,
             "deadline_filter": deadline_filter,
+            "latest_digest": latest_digest,
         },
     )
 
@@ -198,6 +211,15 @@ def add_task(request):
 
     TaskActivity.objects.create(
         task=task, user=request.user, message="created the task."
+    )
+
+    task.ai_summary = None
+    task.ai_summary_updated = None
+    task.save(
+        update_fields=[
+            "ai_summary",
+            "ai_summary_updated",
+        ]
     )
 
     return JsonResponse({"success": True, "task_id": task.id})
@@ -257,6 +279,14 @@ def assign_task(request, task_id):
                 user=request.user,
                 message=f"updated assignees to: {', '.join(usernames)}.",
             )
+            task.ai_summary = None
+            task.ai_summary_updated = None
+            task.save(
+                update_fields=[
+                    "ai_summary",
+                    "ai_summary_updated",
+                ]
+            )
 
         # Only create activity if followers changed
         if old_followers != new_followers:
@@ -267,6 +297,14 @@ def assign_task(request, task_id):
                 task=task,
                 user=request.user,
                 message=f"updated followers to: {', '.join(usernames)}.",
+            )
+            task.ai_summary = None
+            task.ai_summary_updated = None
+            task.save(
+                update_fields=[
+                    "ai_summary",
+                    "ai_summary_updated",
+                ]
             )
 
         return JsonResponse({"success": True})
@@ -351,6 +389,14 @@ def update_status(request, task_id):
                 user=request.user,
                 message=f"changed the overall task status from '{old_display}' to '{new_display}'.",
             )
+            task.ai_summary = None
+            task.ai_summary_updated = None
+            task.save(
+                update_fields=[
+                    "ai_summary",
+                    "ai_summary_updated",
+                ]
+            )
 
     # ---------------- ASSIGNEE ----------------
 
@@ -374,6 +420,15 @@ def update_status(request, task_id):
                 user=request.user,
                 message=f"changed their status from '{old_display}' to '{new_display}'.",
             )
+            task.ai_summary = None
+            task.ai_summary_updated = None
+            task.save(
+                update_fields=[
+                    "ai_summary",
+                    "ai_summary_updated",
+                ]
+            )
+
     return JsonResponse({"success": True})
 
 
@@ -479,6 +534,7 @@ def task_data(request, task_id):
             "status": visible_status_display,
             "status_value": visible_status,
             "status_context": status_context,
+            "ai_summary": task.ai_summary,
             "owner": task.user.username,
             "details": task.task_details,
             "assignees": [user.username for user in task.assigned_to.all()],
@@ -488,7 +544,9 @@ def task_data(request, task_id):
                     "id": activity.id,
                     "user": activity.user.username,
                     "message": activity.message,
-                    "time": activity.created_at.strftime("%d %b %Y %H:%M"),
+                    "time": timezone.localtime(activity.created_at).strftime(
+                        "%d %b %Y %H:%M"
+                    ),
                     "type": activity.activity_type,
                     "owner": activity.user.username,
                     "attachments": [
@@ -506,7 +564,9 @@ def task_data(request, task_id):
                     "id": remark.id,
                     "user": remark.user.username,
                     "message": remark.message,
-                    "time": remark.created_at.strftime("%d %b %Y %H:%M"),
+                    "time": timezone.localtime(remark.created_at).strftime(
+                        "%d %b %Y %H:%M"
+                    ),
                     "owner": remark.user.username,
                     "can_edit": request.user == remark.user,
                     "can_delete": (
@@ -558,6 +618,15 @@ def add_task_comment(request, task_id):
             activity_type=TaskActivity.ActivityType.COMMENT,
         )
 
+        task.ai_summary = None
+        task.ai_summary_updated = None
+        task.save(
+            update_fields=[
+                "ai_summary",
+                "ai_summary_updated",
+            ]
+        )
+
         # Save all uploaded files
         for file in files:
             ActivityAttachment.objects.create(activity=activity, file=file)
@@ -575,7 +644,18 @@ def delete_activity(request, activity_id):
     if request.user != task.user and request.user != activity.user:
         return JsonResponse({"success": False}, status=403)
 
+    task = activity.task
+
     activity.delete()
+
+    task.ai_summary = None
+    task.ai_summary_updated = None
+    task.save(
+        update_fields=[
+            "ai_summary",
+            "ai_summary_updated",
+        ]
+    )
     return JsonResponse({"success": True})
 
 
@@ -591,6 +671,14 @@ def edit_activity(request, activity_id):
         if message:
             activity.message = message
             activity.save()
+            activity.task.ai_summary = None
+            activity.task.ai_summary_updated = None
+            activity.task.save(
+                update_fields=[
+                    "ai_summary",
+                    "ai_summary_updated",
+                ]
+            )
 
         return JsonResponse({"success": True})
     return JsonResponse({"success": False}, status=400)
@@ -780,3 +868,150 @@ def task_status_distribution(request, task_id):
             "values": list(status_counts.values()),
         }
     )
+
+
+@login_required
+def generate_ai_summary(request, task_id):
+
+    task = get_object_or_404(Task, id=task_id)
+
+    # Return cached summary if it already exists
+    if task.ai_summary:
+        return JsonResponse(
+            {
+                "summary": task.ai_summary,
+                "cached": True,
+            }
+        )
+
+    activities = (
+        TaskActivity.objects.filter(task=task)
+        .select_related("user")
+        .order_by("created_at")
+    )
+
+    activity_text = ""
+
+    for activity in activities:
+        activity_text += (
+            f"{timezone.localtime(activity.created_at):%d %b %Y %H:%M} - "
+            f"{activity.user.username}: "
+            f"{activity.message}\n"
+        )
+
+    summary = summarize_activities(activity_text)
+
+    task.ai_summary = summary
+    task.ai_summary_updated = timezone.now()
+    task.save(update_fields=["ai_summary", "ai_summary_updated"])
+
+    return JsonResponse({"summary": summary})
+
+
+@login_required
+def executive_digest(request):
+
+    selected_date = request.GET.get("date")
+
+    if not selected_date:
+        return JsonResponse(
+            {"success": False, "error": "Please provide a date."},
+            status=400,
+        )
+
+    activities = (
+        TaskActivity.objects.filter(created_at__date=selected_date)
+        .select_related("task", "user")
+        .order_by("created_at")
+    )
+
+    grouped_tasks = defaultdict(list)
+
+    for activity in activities:
+        grouped_tasks[activity.task].append(activity)
+
+    log_text = ""
+
+    for task, task_activities in grouped_tasks.items():
+
+        log_text += f"""
+    ==================================================
+    Company: {task.get_company_name_display()}
+
+    Task: {task.title}
+
+    Overall Status: {task.get_status_display()}
+
+    Activities:
+    """
+
+        for activity in task_activities:
+
+            log_text += (
+                f"\n• "
+                f"{timezone.localtime(activity.created_at).strftime('%H:%M')} - "
+                f"{activity.user.username}: "
+                f"{activity.message}"
+            )
+
+        log_text += "\n\n"
+
+        if not log_text.strip():
+            return JsonResponse(
+                {
+                    "success": True,
+                    "summary": "No task activity found for the selected date.",
+                }
+            )
+
+        latest_activity = activities.order_by("-created_at").first()
+
+        cached_digest = ExecutiveDigest.objects.filter(
+            user=request.user, digest_date=selected_date
+        ).first()
+
+        # --------------------------
+        # CACHE HIT
+        # --------------------------
+        if (
+            cached_digest
+            and latest_activity
+            and cached_digest.last_activity_at >= latest_activity.created_at
+        ):
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "summary": cached_digest.summary,
+                    "generated_at": timezone.localtime(
+                        cached_digest.generated_at
+                    ).strftime("%d-%m-%Y %H:%M"),
+                    "cached": True,
+                }
+            )
+
+        # --------------------------
+        # CACHE MISS
+        # --------------------------
+
+        summary = executive_daily_digest(log_text)
+
+        digest, created = ExecutiveDigest.objects.update_or_create(
+            user=request.user,
+            digest_date=selected_date,
+            defaults={
+                "summary": summary,
+                "last_activity_at": latest_activity.created_at,
+            },
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "summary": summary,
+                "generated_at": timezone.localtime(digest.generated_at).strftime(
+                    "%d-%m-%Y %H:%M"
+                ),
+                "cached": False,
+            }
+        )

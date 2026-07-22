@@ -41,6 +41,9 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    ai_summary = models.TextField(blank=True, null=True)
+    ai_summary_updated = models.DateTimeField(blank=True, null=True)
+
 
 class TaskActivity(models.Model):
     class ActivityType(models.TextChoices):
@@ -122,3 +125,27 @@ class UserTaskStatus(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.task.title} ({self.status})"
+
+
+from django.contrib.auth.models import User
+
+
+class ExecutiveDigest(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="executive_digests"
+    )
+
+    digest_date = models.DateField()
+
+    summary = models.TextField()
+
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    last_activity_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = ("user", "digest_date")
+        ordering = ["-generated_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.digest_date}"

@@ -81,6 +81,16 @@ urlpatterns = [
         views.task_status_distribution,
         name="task_status_distribution",
     ),
+    path(
+        "task/<int:task_id>/ai-summary/",
+        views.generate_ai_summary,
+        name="generate_ai_summary",
+    ),
+    path(
+        "executive-digest/",
+        views.executive_digest,
+        name="executive_digest",
+    ),
 ]
 
 if settings.DEBUG:

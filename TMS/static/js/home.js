@@ -222,3 +222,116 @@ function(){
         .toggle(visible);
 
 });
+
+$(document).on("click", "#generateDigestBtn", function () {
+
+    const selectedDate = $("#digestDate").val();
+
+    if (!selectedDate) {
+        alert("Please select a date.");
+        return;
+    }
+
+    const button = $(this);
+
+    button.prop("disabled", true);
+    button.text("Generating...");
+
+    $("#digestResult").html(`
+
+    <div class="text-center py-5">
+
+        <div class="spinner-border text-primary"></div>
+
+        <h6 class="mt-3">
+            Gemini is analysing today's work...
+        </h6>
+
+        <small class="text-muted">
+            Reviewing activities across all companies
+        </small>
+
+    </div>
+
+    `);
+
+    $.ajax({
+
+        url: "/executive-digest/",
+
+        type: "GET",
+
+        data: {
+            date: selectedDate
+        },
+
+        success: function (response) {
+
+            let summary = response.summary;
+
+            summary = summary
+                .replace(
+                    "Operational Velocity",
+                    '<h4 class="text-success">  Operational Velocity</h4>'
+                )
+                .replace(
+                    "Bottlenecks",
+                    '<h4 class="text-danger mt-4"> Bottlenecks</h4>'
+                )
+                .replace(
+                    "Tomorrow\'s Priorities",
+                    '<h4 class="text-primary mt-4"> Tomorrow\'s Priorities</h4>'
+                );
+
+            $("#digestResult").html(`
+
+            <div class="executive-report">
+
+                <div class="report-top">
+
+                    <small>
+
+                        ${response.generated_at}
+
+                    </small>
+
+                </div>
+
+                <div class="report-body">
+
+                    ${summary}
+
+                </div>
+
+            </div>
+
+            `);
+            
+            $("#lastDigestTime").text(response.generated_at);
+        },
+
+        error: function () {
+
+            $("#digestResult").html(`
+                <div class="alert alert-danger">
+                    Unable to generate executive digest.
+                </div>
+            `);
+
+        },
+
+        complete: function () {
+
+            button.prop("disabled", false);
+            button.text("Generate Digest");
+
+        }
+        
+    });
+
+});
+
+const today = new Date().toISOString().split("T")[0];
+
+$("#digestDate").val(today);
+

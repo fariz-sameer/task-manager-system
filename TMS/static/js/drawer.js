@@ -342,6 +342,8 @@ function renderTaskDrawer(task) {
       <p>${task.details}</p>
     </div>
 
+    
+
     <hr class="drawer-hr">
 
     <div class="status-chart-card">
@@ -368,6 +370,34 @@ function renderTaskDrawer(task) {
       </div>
 
   </div>
+
+    <div class="ai-summary-card">
+
+        <div class="ai-summary-header">
+            <div>
+                <h5>
+                    <i class="bi bi-stars"></i>
+                    AI Task Summary
+                </h5>
+                <small>Generated from task activities</small>
+            </div>
+
+            <button
+                class="btn btn-success"
+                id="generateSummaryBtn">
+                <i class="bi bi-magic"></i>
+                Generate
+            </button>
+        </div>
+
+        <div id="aiSummary" class="ai-summary-body">
+            <div class="empty-summary">
+                <i class="bi bi-robot"></i>
+                <p>No summary generated yet.</p>
+            </div>
+        </div>
+
+    </div>
 
     <div class="drawer-columns">
       <div class="activity-column">
@@ -612,3 +642,47 @@ function loadStatusChart(taskId){
 
 
 }
+
+$(document).on("click", "#generateSummaryBtn", function () {
+
+    // Show loading animation immediately
+    $("#aiSummary").html(`
+        <div class="ai-loading">
+            <div class="spinner-border text-success" role="status"></div>
+            <p class="mt-3">
+                Analyzation in progress...
+            </p>
+        </div>
+    `);
+
+    $("#generateSummaryBtn")
+        .prop("disabled", true)
+        .html('<i class="bi bi-hourglass-split"></i> Generating...');
+
+    $.get(
+        `/task/${currentTask}/ai-summary/`,
+        function (data) {
+
+            const bullets = data.summary
+                .split("\n")
+                .filter(line => line.trim());
+
+            let html = "<ul>";
+
+            bullets.forEach(line => {
+                html += `<li>${line.replace(/^[-•]\s*/, "")}</li>`;
+            });
+
+            html += "</ul>";
+
+            $("#aiSummary").html(html);
+        }
+    ).always(function () {
+
+        $("#generateSummaryBtn")
+            .prop("disabled", false)
+            .html('<i class="bi bi-magic"></i> Generate');
+
+    });
+
+});
