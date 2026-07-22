@@ -19,7 +19,6 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from .forms import SignUpForm
-from .models import Task, TaskActivity
 
 from .ai import (
     summarize_activities,

@@ -127,9 +127,6 @@ class UserTaskStatus(models.Model):
         return f"{self.user.username} - {self.task.title} ({self.status})"
 
 
-from django.contrib.auth.models import User
-
-
 class ExecutiveDigest(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="executive_digests"
