@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure-rxaug&0=kgjncga29aezihnvgfh*)r@6-7sx6qa49_+3hxu0b*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["task-manager-system-ihwx.onrender.com"]
+ALLOWED_HOSTS = ["task-manager-system-ihwx.onrender.com", "127.0.0.1"]
 
 
 # Application definition
@@ -126,8 +126,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "TMS/static/"
+STATIC_ROOT = BASE_DIR / "TMS/static/"
 
 LOGIN_URL = "login"
 
