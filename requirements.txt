@@ -74,6 +74,10 @@ platformdirs==4.10.0
     #   virtualenv
 pre-commit==4.6.0
     # via task-manager-system (pyproject.toml)
+psycopg==3.3.4
+    # via task-manager-system (pyproject.toml)
+psycopg-binary==3.3.4
+    # via psycopg
 pyasn1==0.6.4
     # via pyasn1-modules
 pyasn1-modules==0.4.2
@@ -116,6 +120,7 @@ typing-extensions==4.16.0
     #   anyio
     #   beautifulsoup4
     #   google-genai
+    #   psycopg
     #   pydantic
     #   pydantic-core
     #   typing-inspection
@@ -125,6 +130,7 @@ tzdata==2026.3
     # via
     #   task-manager-system (pyproject.toml)
     #   django
+    #   psycopg
 urllib3==2.7.0
     # via requests
 virtualenv==21.6.1
