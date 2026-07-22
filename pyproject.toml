@@ -25,4 +25,5 @@ dependencies = [
     "typing-extensions==4.16.0",
     "tzdata==2026.3",
     "virtualenv==21.6.1",
+    "whitenoise>=6.12.0",
 ]
