@@ -29,42 +29,47 @@
 
 </head>
 <body class="dark-mode">
-    <h1>Task Management System</h1>
+    <div class="page-header">
+        
 
-    {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
 
-    <div class="top-bar-left">
+        <div class="top-bar-left">
 
-        <button class="welcome-text">
-            <i class="bi bi-person-fill"></i>
-            {{ user.username }}
-        </button>
+            <button class="welcome-text">
+                <i class="bi bi-person-fill"></i>
+                {{ user.username }}
+            </button>
 
-        <label class="theme-switch">
+            <label class="theme-switch">
 
-            <input
-                type="checkbox"
-                id="themeToggle">
+                <input
+                    type="checkbox"
+                    id="themeToggle">
 
-            <span class="slider">
+                <span class="slider">
 
-                <i class="bi bi-sun-fill sun"></i>
+                    <i class="bi bi-sun-fill sun"></i>
 
-                <i class="bi bi-moon-stars-fill moon"></i>
+                    <i class="bi bi-moon-stars-fill moon"></i>
 
-            </span>
+                </span>
 
-        </label>
+            </label>
 
+        </div>
+
+        <h1>Task Management System</h1>
+
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-power"></i> Log Out
+            </button>
+        </form>
+        {% endif %}
     </div>
 
-    <form action="{% url 'logout' %}" method="post" class="logout-form">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">
-            <i class="bi bi-power"></i> Log Out
-        </button>
-    </form>
-    {% endif %}
 
         <div class="task-creator">
             <form id="addTaskForm" action="{% url 'add_task' %}" method="POST">
@@ -97,8 +102,8 @@
                     </div>
 
                     <div class="col-md-1">
-                        <button type="submit" class="btn btn-success mt-4">
-                            Create
+                        <button type="submit" class="create-btn">
+                            <i class="bi bi-plus-circle"></i> Create
                         </button>
                     </div>
 
@@ -355,6 +360,17 @@
                     <input type="checkbox" checked data-column="owner">
                     Owner
                     </label>
+                    
+                    <label>
+                    <input type="checkbox" checked data-column="assignees">
+                    Assignees
+                    </label>
+
+                    <label>
+                    <input type="checkbox" checked data-column="followers">
+                    followers
+                    </label>
+
 
                 </div>
 

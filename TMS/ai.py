@@ -76,6 +76,14 @@ Rules
 - Do NOT combine multiple projects into the same bullet.
 - Put ONE blank line after every bullet.
 - Use only the bullet character "•".
+Formatting Requirements:
+
+- Use Markdown.
+- Every bullet point MUST be on its own line.
+- Never place multiple bullet points on the same line.
+- Leave one blank line between bullet points for readability.
+
+
 
 Example
 
@@ -96,10 +104,6 @@ Tomorrow's Priorities
 
 • Finalize deployment.
 • Review pending approvals.
-
-Task Activity Log
-
-{log_text}
 
 {log_text}
 """

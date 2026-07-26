@@ -479,6 +479,7 @@ function loadStatusChart(taskId){
 
 
         success:function(data){
+            const statusUsers = data.users;
 
 
             let ctx =
@@ -604,27 +605,58 @@ function loadStatusChart(taskId){
 
 
                       tooltip:{
-                        backgroundColor:"#1b4332",
 
-                        titleColor:"#fff",
+                            backgroundColor:"#1b4332",
 
-                        bodyColor:"#fff",
+                            titleColor:"#fff",
 
-                        padding:14,
+                            bodyColor:"#fff",
 
-                        cornerRadius:14,
+                            padding:14,
 
-                        displayColors:true,
+                            cornerRadius:14,
 
-                        titleFont:{
-                            size:15,
-                            weight:"bold"
-                        },
+                            displayColors:false,
 
-                        bodyFont:{
-                            size:13
+                            titleFont:{
+                                size:15,
+                                weight:"bold"
+                            },
+
+                            bodyFont:{
+                                size:13
+                            },
+
+                            callbacks:{
+
+                                title:function(context){
+
+                                    const status = context[0].label;
+                                    const count = context[0].raw;
+
+                                    return `${status} (${count})`;
+
+                                },
+
+                                label:function(context){
+
+                                    const status = context.label;
+
+                                    const users = statusUsers[status] || [];
+
+                                    if(users.length === 0){
+
+                                        return ["No users"];
+
+                                    }
+
+                                    return users.map(user => "• " + user);
+
+                                }
+
+                            }
+
                         }
-                    }
 
 
                   }

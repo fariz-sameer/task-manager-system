@@ -818,7 +818,6 @@ def task_status_distribution(request, task_id):
 
     task = get_object_or_404(Task, id=task_id)
 
-    # Permission check
     if (
         request.user != task.user
         and request.user not in task.assigned_to.all()
@@ -826,45 +825,44 @@ def task_status_distribution(request, task_id):
     ):
         return JsonResponse({"error": "Permission denied"}, status=403)
 
-    # ---------------------------------
     # Locked statuses
-    # ---------------------------------
-
     if task.status in LOCKED_STATUSES:
 
         return JsonResponse(
             {
                 "labels": [task.get_status_display()],
                 "values": [task.assigned_to.count()],
+                "users": {
+                    task.get_status_display(): [
+                        user.username for user in task.assigned_to.all()
+                    ]
+                },
             }
         )
 
-    # ---------------------------------
-    # Normal status distribution
-    # ---------------------------------
-
     status_counts = {}
+    status_users = {}
 
     user_statuses = UserTaskStatus.objects.filter(
         task=task, user__in=task.assigned_to.all()
-    )
+    ).select_related("user")
 
     for user_status in user_statuses:
 
         status_name = user_status.get_status_display()
 
-        if status_name in status_counts:
+        status_counts[status_name] = status_counts.get(status_name, 0) + 1
 
-            status_counts[status_name] += 1
+        if status_name not in status_users:
+            status_users[status_name] = []
 
-        else:
-
-            status_counts[status_name] = 1
+        status_users[status_name].append(user_status.user.username)
 
     return JsonResponse(
         {
             "labels": list(status_counts.keys()),
             "values": list(status_counts.values()),
+            "users": status_users,
         }
     )
 

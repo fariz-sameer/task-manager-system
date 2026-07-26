@@ -47,33 +47,35 @@ h1{
    WELCOME BAR
    ========================================================== */
 
-.welcome-text{
-
-    background:
-        linear-gradient(
-            135deg,
-            #166534,
-            #14532D
-        ) !important;
-
-    border:1px solid #22C55E;
-
-    color:white;
-
-    box-shadow:
-        0 10px 25px rgba(34,197,94,.20);
-
+.welcome-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #40916c, #163225) !important;
+    color: white;
+    border: 2px rgb(4, 42, 4) solid;
+    border-radius: 30px;
+    padding: 4px 30px;
+    /* font-size:18px; */
+    transition: all 0.25s ease;
+    cursor: pointer;
+    font-weight: bolder;
+    letter-spacing: 2px;
 }
 
-.welcome-text:hover{
+.welcome-text:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #40916c, #163225) !important;
+    box-shadow: 0 8px 20px rgba(45, 106, 79, 0.35);
+}
 
-    background:
-        linear-gradient(
-            135deg,
-            #15803D,
-            #166534
-        ) !important;
+.welcome-text i {
+    font-size: 20px;
+    transition: transform 0.25s ease;
+}
 
+.welcome-text:hover i {
+    animation: wave 0.5s ease-in-out;
 }
 
 
@@ -125,6 +127,22 @@ h1{
 /* ==========================================================
    TASK CREATOR
    ========================================================== */
+
+.page-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    background:
+        radial-gradient(circle at top,#1b2a41 0%,#0f172a 40%,#0b1120 100%);
+
+    border:2px solid black;
+    /* border-bottom-left-radius:25px;
+    border-bottom-right-radius:25px; */
+    border-radius: 100px;
+    padding:18px 30px;
+    margin: 20px 50px 0px 50px;
+}
 
 .task-creator{
 
@@ -456,7 +474,7 @@ h1{
 
 .drawer-section h6{
 
-    color:#4c8e65;
+    color:#7a9fc4;
 
 }
 
