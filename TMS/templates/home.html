@@ -84,7 +84,10 @@
 
                     <div class="col-md-2">
                         <label class="form-label"><strong>Company</strong></label>
-                        <select name="company_name" class="form-select">
+                        <select name="company_name" class="form-select" required>
+                            <option value="" selected disabled>
+                                Select company
+                            </option>
                             {% for value, label in Company.choices %}
                                 <option value="{{ value }}">{{ label }}</option>
                             {% endfor %}
