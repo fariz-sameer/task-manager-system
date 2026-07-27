@@ -43,6 +43,33 @@ LOCKED_STATUSES = [
 ]
 
 
+from django.db import connection
+from django.http import JsonResponse
+
+
+def health(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+
+        return JsonResponse(
+            {
+                "status": "ok",
+                "database": "ok",
+            },
+            status=200,
+        )
+    except Exception as exc:
+        return JsonResponse(
+            {
+                "status": "error",
+                "database": str(exc),
+            },
+            status=503,
+        )
+
+
 def prepare_task(task, user):
 
     latest_activity = task.activities.order_by("-created_at").first()
