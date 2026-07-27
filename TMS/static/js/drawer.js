@@ -606,7 +606,7 @@ function loadStatusChart(taskId){
 
                       tooltip:{
 
-                            backgroundColor:"#1b4332",
+                        backgroundColor:"#1b4332",
 
                             titleColor:"#fff",
 

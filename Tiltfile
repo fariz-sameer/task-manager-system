@@ -15,6 +15,16 @@ cmd_button(
 )
 
 cmd_button(
+    "Run Migrations",
+    argv=[
+        "docker", "compose", "exec", "-T",
+        "web",
+        "uv", "run", "python", "manage.py", "migrate",
+    ],
+    resource="web",
+)
+
+cmd_button(
     "Collect Static",
     argv=[
         "docker", "compose", "exec", "-T",

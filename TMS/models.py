@@ -8,7 +8,7 @@ class Task(models.Model):
     class Company(models.TextChoices):
         ARACO = "ARACO", "ARACO"
         JODAH = "JODAH", "JODAH"
-        XYZ = "XYZ", "XYZ Company"
+        KIFAH = "AL-KIFAH", "AL-KIFAH"
 
     class Status(models.TextChoices):
         NEW = "NEW", "New"
@@ -33,7 +33,7 @@ class Task(models.Model):
     followers = models.ManyToManyField(User, blank=True, related_name="following_tasks")
     created_at = models.DateTimeField(auto_now_add=True)
     company_name = models.CharField(
-        max_length=20, choices=Company.choices, default=Company.ARACO
+        max_length=20, choices=Company.choices, default=None
     )
     task_details = models.TextField(blank=True)
     deadline = models.DateField(null=True, blank=True)
