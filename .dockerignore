@@ -16,6 +16,6 @@ staticfiles
 .vscode
 .idea
 
-Dockerfile
-docker-compose.yaml
+Dockerfile.*
+docker-compose.*
 Tiltfile

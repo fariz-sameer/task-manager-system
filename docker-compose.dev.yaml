@@ -1,13 +1,14 @@
 services:
   db:
-    container_name: taskmanager-db
     image: postgres:18
+    container_name: taskmanager-db
+
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: taskmanager
-      POSTGRES_USER: taskmanager
-      POSTGRES_PASSWORD: fariz
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
       - "5432:5432"
@@ -16,14 +17,17 @@ services:
       - postgres_data:/var/lib/postgresql
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U taskmanager -d taskmanager"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
     container_name: taskmanager-web
-    build: .
 
     restart: unless-stopped
 
@@ -33,15 +37,16 @@ services:
         uv run python manage.py runserver 0.0.0.0:8000
       "
 
-    volumes:
-      - .:/app
-      - uv-cache:/root/.cache/uv
-
     env_file:
-      - .env
+      - .env.local
 
     ports:
       - "8000:8000"
+
+    volumes:
+      - .:/app
+      - media:/app/media
+      - uv-cache:/root/.cache/uv
 
     depends_on:
       db:
@@ -49,5 +54,5 @@ services:
 
 volumes:
   postgres_data:
-    name: taskmanager-postgres-data
+  media:
   uv-cache:

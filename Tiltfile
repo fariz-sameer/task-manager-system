@@ -1,5 +1,5 @@
 load('ext://uibutton', 'cmd_button')
-docker_compose("docker-compose.yaml")
+docker_compose("docker-compose.dev.yaml")
 
 dc_resource("db")
 dc_resource("web")
