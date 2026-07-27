@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:18
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    command: >
+      sh -c "
+        uv run python manage.py migrate &&
+        uv run python manage.py collectstatic --noinput &&
+        uv run gunicorn TaskManagementSystem.wsgi:application
+        --bind 0.0.0.0:8000
+        --workers 3
+      "
+
+    expose:
+      - "8000"
+
+    volumes:
+      - media:/app/media
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  media:
