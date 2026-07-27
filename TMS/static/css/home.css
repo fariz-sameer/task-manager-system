@@ -67,6 +67,7 @@ body {
         #F94144,
         #B5171E
     );
+    gap: 5px;
 }
 
 .logout-form .btn-danger:hover {
@@ -342,7 +343,7 @@ form>div>input::placeholder {
         transform 0.16s ease,
         visibility 0.16s;
 
-    z-index: 1000;
+    z-index: 2000;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.35) transparent;
 }

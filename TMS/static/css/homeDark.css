@@ -1006,7 +1006,7 @@ hr.drawer-hr{
         transform .16s ease,
         visibility .16s;
 
-    z-index: 1000;
+    z-index: 4000;
 
     scrollbar-width: thin;
     scrollbar-color: #475569 transparent;
