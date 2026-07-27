@@ -38,7 +38,7 @@ services:
       "
 
     env_file:
-      - .env.local
+      - .env
 
     ports:
       - "8000:8000"
