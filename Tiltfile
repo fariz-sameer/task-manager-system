@@ -1,5 +1,7 @@
 load('ext://uibutton', 'cmd_button')
-docker_compose("docker-compose.dev.yaml")
+COMPOSE_FILE = "docker-compose.dev.yaml"
+
+docker_compose(COMPOSE_FILE)
 
 dc_resource("db")
 dc_resource("web")
@@ -7,7 +9,7 @@ dc_resource("web")
 cmd_button(
     "Make Migrations",
     argv=[
-        "docker", "compose", "exec", "-T",
+        "docker", "compose", "-f", COMPOSE_FILE, "exec", "-T",
         "web",
         "uv", "run", "python", "manage.py", "makemigrations",
     ],
@@ -17,7 +19,7 @@ cmd_button(
 cmd_button(
     "Run Migrations",
     argv=[
-        "docker", "compose", "exec", "-T",
+        "docker", "compose", "-f", COMPOSE_FILE, "exec", "-T",
         "web",
         "uv", "run", "python", "manage.py", "migrate",
     ],
@@ -27,7 +29,7 @@ cmd_button(
 cmd_button(
     "Collect Static",
     argv=[
-        "docker", "compose", "exec", "-T",
+        "docker", "compose", "-f", COMPOSE_FILE, "exec", "-T",
         "web",
         "uv", "run", "python", "manage.py", "collectstatic", "--noinput",
     ],
