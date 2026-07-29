@@ -20,7 +20,7 @@
   <div id="taskPreviewTooltip"></div>
   </td>
 
-  <td data-column="company">{{ task.get_company_name_display }}</td>
+  <td data-column="company">{{ task.company_name.name }}</td>
 
   <td data-column="status">
     {% if request.user == task.user %}
