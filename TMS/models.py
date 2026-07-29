@@ -37,10 +37,9 @@ class Task(models.Model):
     )
     followers = models.ManyToManyField(User, blank=True, related_name="following_tasks")
     created_at = models.DateTimeField(auto_now_add=True)
-    company_name = models.ForeignKey(
+    company = models.ForeignKey(
         Company,
         on_delete=models.PROTECT,
-        to_field="name",
     )
     task_details = models.TextField(blank=True)
     deadline = models.DateField(null=True, blank=True)
