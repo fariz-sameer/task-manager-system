@@ -19,9 +19,7 @@ services:
       retries: 10
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/fariz-sameer/task-manager-system:latest
 
     restart: unless-stopped
 
@@ -29,16 +27,12 @@ services:
       - .env
 
     command:
-      - sh
-      - -c
-      - |
-          python manage.py migrate
-          python manage.py collectstatic --noinput
-          exec gunicorn TaskManagementSystem.wsgi:application \
-            --bind 0.0.0.0:8000 \
-            --workers 3 \
-            --access-logfile - \
-            --error-logfile -
+      - gunicorn
+      - TaskManagementSystem.wsgi:application
+      - --bind=0.0.0.0:8000
+      - --workers=3
+      - --access-logfile=-
+      - --error-logfile=-
 
     ports:
       - "127.0.0.1:8000:8000"

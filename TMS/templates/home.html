@@ -88,8 +88,8 @@
                             <option value="" selected disabled>
                                 Select company
                             </option>
-                            {% for value, label in Company.choices %}
-                                <option value="{{ value }}">{{ label }}</option>
+                            {% for company in companies %}
+                                <option value="{{ company.name }}">{{ company.name }}</option>
                             {% endfor %}
                         </select>
                     </div>

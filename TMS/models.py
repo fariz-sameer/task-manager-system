@@ -4,12 +4,17 @@ from django.utils import timezone
 from django.conf import settings
 
 
-class Task(models.Model):
-    class Company(models.TextChoices):
-        ARACO = "ARACO", "ARACO"
-        JODAH = "JODAH", "JODAH"
-        KIFAH = "AL-KIFAH", "AL-KIFAH"
+class Company(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Task(models.Model):
     class Status(models.TextChoices):
         NEW = "NEW", "New"
         URGENT = "URGENT", "Urgent"
@@ -32,7 +37,10 @@ class Task(models.Model):
     )
     followers = models.ManyToManyField(User, blank=True, related_name="following_tasks")
     created_at = models.DateTimeField(auto_now_add=True)
-    company_name = models.CharField(max_length=20, choices=Company.choices)
+    company_name = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+    )
     task_details = models.TextField(blank=True)
     deadline = models.DateField(null=True, blank=True)
 

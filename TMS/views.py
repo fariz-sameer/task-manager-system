@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 from .models import (
+    Company,
     Task,
     TaskActivity,
     TaskReadStatus,
@@ -41,6 +42,32 @@ LOCKED_STATUSES = [
     Task.Status.CLOSED_TO_REOPEN,
     Task.Status.CANCELLED,
 ]
+
+
+from django.db import connection
+
+
+def health(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+
+        return JsonResponse(
+            {
+                "status": "ok",
+                "database": "ok",
+            },
+            status=200,
+        )
+    except Exception as exc:
+        return JsonResponse(
+            {
+                "status": "error",
+                "database": str(exc),
+            },
+            status=503,
+        )
 
 
 def prepare_task(task, user):
@@ -171,7 +198,7 @@ def home(request):
         {
             "tasks": tasks,
             "Status": Task.Status,
-            "Company": Task.Company,
+            "companies": Company.objects.order_by("name"),
             "users": users,
             "status_filter": status_filter,
             "owner_filter": owner_filter,
@@ -193,10 +220,18 @@ def add_task(request):
     company_name = request.POST.get("company_name")
     deadline = request.POST.get("deadline")
     task_details = request.POST.get("task_details", "")
+
+    company = Company.objects.filter(name=company_name).first()
+    if not company:
+        return JsonResponse(
+            {"success": False, "error": "Please select a valid company."},
+            status=400,
+        )
+
     task = Task.objects.create(
         user=request.user,
         title=title,
-        company_name=company_name,
+        company_name=company,
         deadline=deadline if deadline else None,
         task_details=task_details,
         status=Task.Status.NEW,
@@ -527,7 +562,7 @@ def task_data(request, task_id):
             "is_follower": request.user in task.followers.all(),
             "id": task.id,
             "title": task.title,
-            "company": task.get_company_name_display(),
+            "company": task.company_name.name,
             "deadline": (
                 task.deadline.strftime("%d %b %Y") if task.deadline else "No deadline"
             ),
@@ -935,7 +970,7 @@ def executive_digest(request):
 
         log_text += f"""
     ==================================================
-    Company: {task.get_company_name_display()}
+    Company: {task.company_name.name}
 
     Task: {task.title}
 
