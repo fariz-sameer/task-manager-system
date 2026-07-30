@@ -1,19 +1,15 @@
 <tr>
   <td data-column="title">
-    <a 
-      href="#" 
-      class="task-link task-hover"
+    <a
+      href="#"
+      class="task-link task-hover {% if task.status == Status.URGENT %}urgent-task{% endif %}"
       data-task="{{ task.id }}"
       data-description="{{ task.task_details|escape }}">
 
       {% if task.display_status == Status.CANCELLED %}
-
           <s>{{ task.title }}</s>
-
       {% else %}
-
           {{ task.title }}
-
       {% endif %}
 
   </a>

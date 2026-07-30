@@ -125,11 +125,12 @@ def home(request):
     owner_filter = request.GET.get("owner")
     assignee_filter = request.GET.get("assignee")
     deadline_filter = request.GET.get("deadline")
-    # if status_filter:
-    #     tasks = tasks.filter(status=status_filter)
-    if status_filter:
 
-        tasks = [task for task in tasks if task.display_status == status_filter]
+    if status_filter:
+        if status_filter == Task.Status.URGENT:
+            tasks = [task for task in tasks if task.status == status_filter]
+        else:
+            tasks = [task for task in tasks if task.display_status == status_filter]
     if owner_filter:
         tasks = tasks.filter(user__id=owner_filter)
     if assignee_filter:
@@ -709,8 +710,7 @@ def task_table_partial(request):
     owner_filter = request.GET.get("owner")
     assignee_filter = request.GET.get("assignee")
     deadline_filter = request.GET.get("deadline")
-    # if status_filter:
-    #     tasks = tasks.filter(status=status_filter)
+
     if owner_filter:
         tasks = tasks.filter(user__id=owner_filter)
     if assignee_filter:
@@ -746,8 +746,10 @@ def task_table_partial(request):
     prepare_tasks(tasks, request.user)
 
     if status_filter:
-
-        tasks = [task for task in tasks if task.display_status == status_filter]
+        if status_filter == Task.Status.URGENT:
+            tasks = [task for task in tasks if task.status == status_filter]
+        else:
+            tasks = [task for task in tasks if task.display_status == status_filter]
 
     return render(
         request,
@@ -953,62 +955,62 @@ def executive_digest(request):
 
         log_text += "\n\n"
 
-        if not log_text.strip():
-            return JsonResponse(
-                {
-                    "success": True,
-                    "summary": "No task activity found for the selected date.",
-                }
-            )
-
-        latest_activity = activities.order_by("-created_at").first()
-
-        cached_digest = ExecutiveDigest.objects.filter(
-            user=request.user, digest_date=selected_date
-        ).first()
-
-        # --------------------------
-        # CACHE HIT
-        # --------------------------
-        if (
-            cached_digest
-            and latest_activity
-            and cached_digest.last_activity_at >= latest_activity.created_at
-        ):
-
-            return JsonResponse(
-                {
-                    "success": True,
-                    "summary": cached_digest.summary,
-                    "generated_at": timezone.localtime(
-                        cached_digest.generated_at
-                    ).strftime("%d-%m-%Y %H:%M"),
-                    "cached": True,
-                }
-            )
-
-        # --------------------------
-        # CACHE MISS
-        # --------------------------
-
-        summary = executive_daily_digest(log_text)
-
-        digest, created = ExecutiveDigest.objects.update_or_create(
-            user=request.user,
-            digest_date=selected_date,
-            defaults={
-                "summary": summary,
-                "last_activity_at": latest_activity.created_at,
-            },
+    if not log_text.strip():
+        return JsonResponse(
+            {
+                "success": True,
+                "summary": "No task activity found for the selected date.",
+            }
         )
+
+    latest_activity = activities.order_by("-created_at").first()
+
+    cached_digest = ExecutiveDigest.objects.filter(
+        user=request.user, digest_date=selected_date
+    ).first()
+
+    # --------------------------
+    # CACHE HIT
+    # --------------------------
+    if (
+        cached_digest
+        and latest_activity
+        and cached_digest.last_activity_at >= latest_activity.created_at
+    ):
 
         return JsonResponse(
             {
                 "success": True,
-                "summary": summary,
-                "generated_at": timezone.localtime(digest.generated_at).strftime(
+                "summary": cached_digest.summary,
+                "generated_at": timezone.localtime(cached_digest.generated_at).strftime(
                     "%d-%m-%Y %H:%M"
                 ),
-                "cached": False,
+                "cached": True,
             }
         )
+
+    # --------------------------
+    # CACHE MISS
+    # --------------------------
+
+    summary = executive_daily_digest(log_text)
+
+    digest, created = ExecutiveDigest.objects.update_or_create(
+        user=request.user,
+        digest_date=selected_date,
+        defaults={
+            "summary": summary,
+            "last_activity_at": latest_activity.created_at,
+        },
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "summary": summary,
+            "generated_at": timezone.localtime(digest.generated_at).strftime(
+                "%d-%m-%Y %H:%M"
+            ),
+            "cached": False,
+        }
+    )
